@@ -19,7 +19,7 @@ RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
 
 # --- Scraping ---
 ANIME_SERIES = os.getenv("ANIME_SERIES", "naruto")
-MAX_PAGES = int(os.getenv("MAX_PAGES", 500))
+MAX_PAGES = int(os.getenv("MAX_PAGES", 5))
 
 WIKI_URLS = {
     "naruto": "https://naruto.fandom.com/wiki",
