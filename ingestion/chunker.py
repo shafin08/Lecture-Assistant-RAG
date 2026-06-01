@@ -22,7 +22,7 @@ def create_documents():
 
     documents = []
 
-    # Return all the txt filename in data/raw
+    # Return all the raw txt filename in data/raw
     raw_file_name = os.listdir(RAW_DATA_DIR)
     
 
@@ -57,15 +57,70 @@ def chunk_documents(documents):
     """
     Create chunks for all documents
     """
-    
-    
+   
+    # Specifications for the chunks
+    chunk_splitter = RecursiveCharacterTextSplitter(
+       chunk_size = CHUNK_SIZE, # Max tokens per chunks
+       chunk_overlap = CHUNK_OVERLAP, # overlap between chunks
+      separators=[
+        "Background",
+        "Personality",
+        "Appearance",
+        "Abilities",
+        "Trivia",
+        "Part I",
+        "Part II",
+        "\n\n"
+        
+   
+    ]
+
+       
+    )
+    # Split all documents into chunks while preserving the metadata
+    chunks = chunk_splitter.split_documents(documents)
+    return chunks
+
+
+def save_chunks(chunks):
+   """
+    Saves chunks to data/processed/chunks.pkl
+    so embedder.py can load them without re-chunking.
+    """
+   
+   filepath = os.path.join(PROCESSED_DATA_DIR, "chunks.pkl")
+   
+   with open(filepath, "wb") as f:
+      pickle.dump(chunks, f) # Convert all the chunks into binary and saves it to the disk, avoid having to rechunk everything again
+   
+   print(f"Saved {len(chunks)} chunks")
+
+
+def run_chunker():
+
+   all_docs = create_documents()
+
+   chunks = chunk_documents(all_docs)
+
+   save_chunks(chunks)
+
+
+
+if __name__ == "__main__":
+    run_chunker()
+
+
+
+   
 
     
 
+    
 
+    
+       
+       
+       
 
-
-
-create_documents()
 
     
