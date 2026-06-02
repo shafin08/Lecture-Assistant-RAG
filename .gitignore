@@ -10,3 +10,7 @@ env/
 # Python cache
 __pycache__/
 *.pyc
+
+# ChromaDB
+*.sqlite3
+chroma_db/
