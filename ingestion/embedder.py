@@ -12,7 +12,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pickle
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
-from langchain_core.documents import Document
 from config import (
     PROCESSED_DATA_DIR,
     CHROMA_DB_DIR,
