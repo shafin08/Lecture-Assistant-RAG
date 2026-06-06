@@ -14,3 +14,6 @@ __pycache__/
 # ChromaDB
 *.sqlite3
 chroma_db/
+
+#DS store
+.DS_Store
