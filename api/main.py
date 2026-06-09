@@ -104,6 +104,9 @@ async def chat(request: ChatRequest):
             status_code=500,
             detail=f"Internal server error: {str(e)}"
         )
+@app.get("/")
+def root():
+    return {"message": "Naruto Chatbot API is running!"}
     
 
 

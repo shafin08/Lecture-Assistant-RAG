@@ -94,7 +94,10 @@ def rewrite_query(query, llm_model, chathistory=[]):
     ]
 
     for items in chathistory:
-        messages.append(items)
+        if items["role"] == "user":
+            messages.append(HumanMessage(content=items["content"]))
+        elif items["role"] == "assistant":
+            messages.append(AIMessage(content=items["content"]))
     
     messages.append(HumanMessage(content=f"Rewrite this question: {query}"))
 
@@ -133,7 +136,10 @@ def ask_llm(query, chathistory=[]):
     ]
 
     for chat in chathistory:
-        messages.append(chat)
+        if chat["role"] == "user":
+            messages.append(HumanMessage(content=chat["content"]))
+        elif chat["role"] == "assistant":
+            messages.append(AIMessage(content=chat["content"]))
     
     messages.append(HumanMessage(content=query))
     chathistory.append(HumanMessage(content=query))
