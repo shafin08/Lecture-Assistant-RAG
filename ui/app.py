@@ -81,26 +81,12 @@ if "chat_history" not in st.session_state:
 # ============================================================
 
 with st.sidebar:
-    st.title("🍥 Naruto Chatbot")
-    st.markdown("Ask me anything about Naruto characters! "
-        "I'll answer based on the Naruto wiki.")
-    
-    st.divider()
-
     if st.sidebar.button("Clear chat", use_container_width=True):
         clear_chat()
         st.rerun()
     st.divider()
 
-    # Example questions
-    st.subheader("Example Questions")
-    st.markdown("""
-    - What is Naruto's signature jutsu?
-    - Who is Sasuke Uchiha?
-    - What are Kakashi's abilities?
-    - Tell me about the Akatsuki members
-    - Who is the strongest character?
-    """)
+    
 
 
 
@@ -117,13 +103,18 @@ st.caption("A friendly and helpful AI-powered chatbot that will answer any quest
 st.divider()
 
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
+    if message["role"] == "user":
+        with st.chat_message(message["role"], avatar="ui/naruto.png"):
+            st.write(message["content"])
+    elif message["role"] == "assistant":
+         with st.chat_message(message["role"], avatar="ui/mecha_naruto.webp"):
+            st.write(message["content"])
+
 
 query = st.chat_input("Ask about any Naruto character....")
 
 if query:
-    with st.chat_message("user", avatar="https://static.wikia.nocookie.net/naruto/images/4/4d/Mecha-Naruto.png/revision/latest?cb=20210813034620"):
+    with st.chat_message("user", avatar="ui/naruto.png"):
         st.write(query)
     st.session_state.messages.append(
         {
@@ -132,7 +123,7 @@ if query:
         }
     )
 
-    with st.chat_message("assistant", avatar="https://static.wikia.nocookie.net/naruto-ultimate-ninja-storm/images/6/62/Mecha_Naruto.png/revision/latest?cb=20200923180940"):
+    with st.chat_message("assistant",avatar="ui/mecha_naruto.webp"):
         with st.spinner("Thinking..."):
             result = send_question(
                 query=query, 

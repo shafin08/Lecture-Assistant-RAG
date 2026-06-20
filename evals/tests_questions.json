@@ -1,0 +1,107 @@
+[
+    {
+        "question": "What is Naruto's signature jutsu?",
+        "expected_answer": "Shadow Clone Jutsu",
+        "ground_truth_character": "Naruto Uzumaki"
+    },
+    {
+        "question": "What tailed beast is sealed inside Naruto?",
+        "expected_answer": "Nine-Tails",
+        "ground_truth_character": "Naruto Uzumaki"
+    },
+    {
+        "question": "What is Naruto's dream?",
+        "expected_answer": "Become Hokage",
+        "ground_truth_character": "Naruto Uzumaki"
+    },
+    {
+        "question": "What clan does Sasuke belong to?",
+        "expected_answer": "Uchiha clan",
+        "ground_truth_character": "Sasuke Uchiha"
+    },
+    {
+        "question": "What is Sasuke's eye technique?",
+        "expected_answer": "Sharingan",
+        "ground_truth_character": "Sasuke Uchiha"
+    },
+    {
+        "question": "What is Sasuke's most powerful jutsu?",
+        "expected_answer": "Chidori",
+        "ground_truth_character": "Sasuke Uchiha"
+    },
+   
+    {
+        "question": "What book series does Kakashi enjoy reading?",
+        "expected_answer": "Icha Icha",
+        "ground_truth_character": "Kakashi Hatake"
+    },
+    {
+        "question": "What eye does Kakashi have?",
+        "expected_answer": "Sharingan",
+        "ground_truth_character": "Kakashi Hatake"
+    },
+  
+    {
+        "question": "Who is Sakura's mentor?",
+        "expected_answer": "Tsunade",
+        "ground_truth_character": "Sakura Haruno"
+    },
+    {
+        "question": "What is Sakura's main ability?",
+        "expected_answer": "Medical ninjutsu",
+        "ground_truth_character": "Sakura Haruno"
+    },
+    {
+        "question": "Who is the leader of the Akatsuki?",
+        "expected_answer": "Pain",
+        "ground_truth_character": "Pain"
+    },
+    {
+        "question": "What is Itachi's most powerful genjutsu?",
+        "expected_answer": "Tsukuyomi",
+        "ground_truth_character": "Itachi Uchiha"
+    },
+  
+    {
+        "question": "What is Gaara's special ability?",
+        "expected_answer": "Sand manipulation",
+        "ground_truth_character": "Gaara"
+    },
+  
+    {
+        "question": "What village is Gaara from?",
+        "expected_answer": "Sunagakure",
+        "ground_truth_character": "Gaara"
+    },
+    {
+        "question": "Who trained Naruto to use Sage Mode?",
+        "expected_answer": "Fukasaku",
+        "ground_truth_character": "Naruto Uzumaki"
+    },
+    {
+        "question": "What is Rock Lee known for?",
+        "expected_answer": "Taijutsu",
+        "ground_truth_character": "Rock Lee"
+    },
+    {
+        "question": "Who is Neji Hyuga?",
+        "expected_answer": "Hyuga clan member",
+        "ground_truth_character": "Neji Hyuga"
+    },
+    {
+        "question": "What is the Byakugan?",
+        "expected_answer": "Hyuga clan eye technique",
+        "ground_truth_character": "Neji Hyuga"
+    },
+    {
+        "question": "Who is Minato Namikaze?",
+        "expected_answer": "Fourth Hokage and Naruto's father",
+        "ground_truth_character": "Minato Namikaze"
+    },
+    {
+        "question": "What is Minato's nickname?",
+        "expected_answer": "Yellow Flash",
+        "ground_truth_character": "Minato Namikaze"
+    }
+  
+]

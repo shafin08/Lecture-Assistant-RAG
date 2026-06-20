@@ -43,6 +43,8 @@ def load_vectorstore():
     
     )
 
+    
+
     return vector_store
 
 def load_bm25():
@@ -55,23 +57,26 @@ def load_bm25():
 
     with open(filepath, "rb") as f:
         chunks = pickle.load(f)
-        print(f"Loaded: {len(chunks)} chunks")
+
 
     bm_25_retriever = BM25Retriever.from_documents(documents=chunks)
-    bm_25_retriever.k = TOP_K_RETRIEVAL
+    bm_25_retriever.k = 3
 
     return bm_25_retriever
 
 def hybrid_search(query,vectorstore,bm25retriever):
     """
     Combines semantic search and BM25 keyword search.
-    Returns a deduplicated list of relevant chunks.
+    Returns a non duplicated list of relevant chunks.
     """
     # Semantic search — finds chunks with similar meaning
     semantic_search = vectorstore.similarity_search(query, k=TOP_K_RETRIEVAL)
 
+
+
     # Keyword search - use bm_25
     keyword_search = bm25retriever.invoke(query)
+
 
     combined_search = semantic_search + keyword_search
 

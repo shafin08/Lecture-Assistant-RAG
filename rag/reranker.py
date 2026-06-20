@@ -8,16 +8,14 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sentence_transformers import CrossEncoder
-from config import RERANKER_MODEL, TOP_K_RERANK
+from config import TOP_K_RERANK
 
 
-def run_reranker(query, chunks):
+def run_reranker(query, model, chunks):
 
     if not chunks:
         return []
 
-    model = CrossEncoder(RERANKER_MODEL)
 
     pairs = []
 
@@ -41,6 +39,8 @@ def run_reranker(query, chunks):
             final_chunks.append(item[0])
         
         counter += 1
+    
+
     return final_chunks
 
 
