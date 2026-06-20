@@ -4,10 +4,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import uvicorn
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
+from sentence_transformers import CrossEncoder
+from config import RERANKER_MODEL
 
 from rag.pipeline import ask_llm
 from rag.retriever import load_vectorstore, load_bm25
@@ -43,11 +45,12 @@ class HealthResponse(BaseModel):
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
-    # This runs ONCE when the server starts
-    vectorstore = load_vectorstore()
-    bm25_retriever = load_bm25()
+    # This runs once when the server starts
+    app.state.vectorstore = load_vectorstore()
+    app.state.bm25_retriever = load_bm25()
+    app.state.reranker_model = CrossEncoder(RERANKER_MODEL)
     yield
-    # This runs when the server stops
+
 
 
 app = FastAPI(
@@ -80,17 +83,19 @@ def get_health():
 
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, http_request: Request):
+    vb = http_request.app.state.vectorstore
+    bm_25 = http_request.app.state.bm25_retriever
+    reranker = http_request.app.state.reranker_model
     try: 
         if not request.query.strip():
             raise HTTPException(
                 status_code = 400,
                 detail= "Question cannot be empty"
             )
-        
-        print(f"\n Question received: {request.query}")
+    
 
-        results = ask_llm(request.query, request.chathistory)
+        results = ask_llm(request.query, vb, bm_25, reranker, request.chathistory)
         return {
             "answer": results["answer"],
             "sources": results["sources"]

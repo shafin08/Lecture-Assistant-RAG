@@ -11,7 +11,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pickle
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from config import RAW_DATA_DIR, PROCESSED_DATA_DIR, CHUNK_SIZE, CHUNK_OVERLAP
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_openai import OpenAIEmbeddings
+from config import RAW_DATA_DIR, PROCESSED_DATA_DIR, CHUNK_SIZE, CHUNK_OVERLAP, EMBEDDING_MODEL
 
 
 def create_documents():
@@ -20,7 +22,7 @@ def create_documents():
     Return a list of langchain document object
     """
 
-    documents = []
+    documents = []  #list of langchain documents objects
 
     # Return all the raw txt filename in data/raw
     raw_file_name = os.listdir(RAW_DATA_DIR)
@@ -79,7 +81,9 @@ def chunk_documents(documents):
     )
     # Split all documents into chunks while preserving the metadata
     chunks = chunk_splitter.split_documents(documents)
-    return chunks
+    print(type(chunks))
+    print(len(chunks))
+    return chunks # List of chunks as langchain document object
 
 
 def save_chunks(chunks):
@@ -95,6 +99,25 @@ def save_chunks(chunks):
    
    print(f"Saved {len(chunks)} chunks")
 
+def test_semantic_chunker():
+   model = OpenAIEmbeddings(
+        model=EMBEDDING_MODEL
+
+    )
+
+   ai = SemanticChunker(
+      embeddings=model
+   )
+
+   filepath = os.path.join(RAW_DATA_DIR, "A_(First_Raikage).txt")
+   with open(filepath, "r",  encoding="utf-8") as f:
+      text_file = f.readlines()
+
+
+   chunks = ai.split_documents(text_file)
+   print(len(chunks))
+
+
 
 def run_chunker():
 
@@ -104,10 +127,13 @@ def run_chunker():
 
    save_chunks(chunks)
 
+   
+   
+
 
 
 if __name__ == "__main__":
-    run_chunker()
+    test_semantic_chunker()
 
 
 
