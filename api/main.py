@@ -9,11 +9,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 from sentence_transformers import CrossEncoder
-from config import RERANKER_MODEL
+from config import RERANKER_MODEL, LLM_MODEL
+from langchain_openai import ChatOpenAI
 
 from rag.pipeline import ask_llm
 from rag.retriever import load_vectorstore, load_bm25
 from rag.reranker import run_reranker
+from fastapi.responses import StreamingResponse
+
 
 
 # ============================================================
@@ -32,7 +35,6 @@ class Source(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str 
-    sources: List[dict] = []
 
 
 class HealthResponse(BaseModel):
@@ -87,6 +89,14 @@ async def chat(request: ChatRequest, http_request: Request):
     vb = http_request.app.state.vectorstore
     bm_25 = http_request.app.state.bm25_retriever
     reranker = http_request.app.state.reranker_model
+
+    llm_model = ChatOpenAI(
+        model=LLM_MODEL,
+        temperature=0.1,
+        max_retries=10,
+        timeout=120
+    )
+
     try: 
         if not request.query.strip():
             raise HTTPException(
@@ -96,13 +106,13 @@ async def chat(request: ChatRequest, http_request: Request):
     
 
         results = ask_llm(request.query, vb, bm_25, reranker, request.chathistory)
-        return {
-            "answer": results["answer"],
-            "sources": results["sources"]
-        }
-    
-    except HTTPException:
-        raise
+        
+        def generate():
+            for chunk in llm_model.stream(results):
+                if chunk:
+                 yield chunk.content
+        return StreamingResponse(generate(), media_type="text/plain")
+
     except Exception as e:
          print(f"Error processing question: {e}")
          raise HTTPException(

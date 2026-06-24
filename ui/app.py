@@ -42,12 +42,13 @@ def send_question(query, chathistory):
             "query": query,
             "chathistory": chathistory
         }, 
-        timeout=60 
+        timeout=60,
+        stream=True
                                  
         )
 
         if response.status_code == 200:
-            return response.json()
+            return response
         else:
             return None
 
@@ -125,23 +126,18 @@ if query:
 
     with st.chat_message("assistant",avatar="ui/mecha_naruto.webp"):
         with st.spinner("Thinking..."):
-            result = send_question(
-                query=query, 
-                chathistory=st.session_state.chat_history
+            result = send_question(query, st.session_state.chat_history)
+            response = st.write_stream(result.iter_content(chunk_size=13, decode_unicode=True))
 
-            )
-        if result:
-            answer = result.get("answer", "Sorry I couldn't generate an answer.")
-        
 
-            st.write(answer)
+        if response:
 
             st.session_state.messages.append({
                 "role": "assistant",
-                "content": answer,
+                "content": response,
             })
 
-            # Add both messages to chat history for FastAPI
+            # Add both messages to chat history for FastAPIs
             # This enables multi-turn conversation
             st.session_state.chat_history.append({
                 "role": "user",
@@ -149,7 +145,7 @@ if query:
             })
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": answer
+                "content": response
             })
         else:
             error_message = "Could not connect to the API"

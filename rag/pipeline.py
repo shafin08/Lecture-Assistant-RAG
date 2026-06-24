@@ -17,7 +17,6 @@ from rag.reranker import run_reranker
 from config import LLM_MODEL, OPENAI_API_KEY
 
 # System prompt — tells the LLM exactly how to behave
-# This is the most important part for preventing hallucinations
 SYSTEM_PROMPT = """You are an expert Naruto chatbot. You answer questions 
 about Naruto characters using ONLY the context provided below.
 
@@ -160,8 +159,7 @@ def ask_llm(query, vector_db, bm_25, reranker, chathistory=[]):
     messages.append(HumanMessage(content=query))
     chathistory.append(HumanMessage(content=query))
 
-    response = llm_model.invoke(messages)
-    chathistory.append(response)
+
     t4 = time.time()
     print(f"LLM Gen: {t4-t3}")
 
@@ -175,13 +173,8 @@ def ask_llm(query, vector_db, bm_25, reranker, chathistory=[]):
         print(f"Title: {title}")
         print(f"Content: {items.page_content}\n\n")
     '''
-
-    response_content = response.content
-
-    return {
-        "answer": response_content,
-        "sources": sources
-    }
+ 
+    return messages
 
 
 
