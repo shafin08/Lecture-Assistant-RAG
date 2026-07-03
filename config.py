@@ -21,11 +21,6 @@ RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
 ANIME_SERIES = os.getenv("ANIME_SERIES", "naruto")
 MAX_PAGES = int(os.getenv("MAX_PAGES", 5))
 
-WIKI_URLS = {
-    "naruto": "https://naruto.fandom.com/wiki",
-    "onepiece": "https://onepiece.fandom.com/wiki",
-    "attackontitan": "https://attackontitan.fandom.com/wiki",
-}
 
 # --- Chunking ---
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 512))
@@ -35,15 +30,17 @@ CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 64))
 TOP_K_RETRIEVAL = int(os.getenv("TOP_K_RETRIEVAL", 7))
 TOP_K_RERANK = int(os.getenv("TOP_K_RERANK", 5))
 
-# --- DB ---
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-
-
 # --- Paths ---
 CHROMA_DB_DIR = "chroma_db"
 BM25_INDEX_PATH = "data/bm25_index.pkl"
+
+# --- DB ---
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# --- JWT ---
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+
+
 
 # --- Validation ---
 def validate_config():
