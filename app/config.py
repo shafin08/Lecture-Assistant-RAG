@@ -38,7 +38,11 @@ TOP_K_RERANK = int(os.getenv("TOP_K_RERANK", 5))
 # --- DB ---
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
+#---JWT---
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
+JWT_EXPIRATION_MINUTES = int(os.getenv("JWT_EXPIRATION_MINUTES"))
 
 
 # --- Paths ---
