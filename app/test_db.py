@@ -2,7 +2,7 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.database import engine, create_tables
+from app.database import get_db, create_tables, engine
 from app.models import User, Document, Conversation, Messages
 from sqlalchemy.orm import Session
 
@@ -17,11 +17,11 @@ except Exception as e:
 create_tables()
 
 # Test inserting a user
-with Session(engine) as db:
+db = next(get_db())
     # Check if test user already exists
-    existing = db.query(User).filter(User.email == "test@example.com").first()
+existing = db.query(User).filter(User.email == "test@example.com").first()
     
-    if not existing:
+if not existing:
         test_user = User(
             username = "test",
             email="test@example.com",
@@ -30,9 +30,9 @@ with Session(engine) as db:
         db.add(test_user)
         db.commit()
         print("✅ Test user created")
-    else:
+else:
         print("✅ Test user already exists")
 
     # Query the user back
-    user = db.query(User).filter(User.email == "test@example.com").first()
-    print(f"✅ Found user: {user.email} (id={user.id})")
+user = db.query(User).filter(User.email == "test@example.com").first()
+print(f"✅ Found user: {user.email} (id={user.id})")
