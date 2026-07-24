@@ -13,7 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from app.database import create_tables
-from app.api import auth   # import the auth router
+from app.api import auth  
+from app.api import documents
 
 
 
@@ -55,6 +56,7 @@ app.add_middleware(
 # ============================================================
 
 app.include_router(auth.router)
+app.include_router(documents.router)
 
 
 
@@ -80,7 +82,7 @@ def root():
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app",
+        "app.api.main:app",
         host="0.0.0.0",   # accept connections from any IP
         port=8000,
         reload=True        # auto-restart when code changes

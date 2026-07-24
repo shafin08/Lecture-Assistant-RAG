@@ -81,8 +81,6 @@ def chunk_documents(documents):
     )
     # Split all documents into chunks while preserving the metadata
     chunks = chunk_splitter.split_documents(documents)
-    print(type(chunks))
-    print(len(chunks))
     return chunks # List of chunks as langchain document object
 
 

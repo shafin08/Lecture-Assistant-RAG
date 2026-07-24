@@ -19,6 +19,7 @@ from app.services.auth_service import (                         # your auth logi
     create_token
 )
 from sqlalchemy import select
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -77,3 +78,15 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     new_token = create_token(check_user.id, request.email, check_user.username)
     return TokenResponse(access_token=new_token, token_type="bearer")
 
+@router.post("/token", response_model=TokenResponse)
+async def login_form(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.email == form_data.username).first()
+    
+    if not user or not verify_pwd(form_data.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    token = create_token(user.id, user.email, user.username)
+    return TokenResponse(access_token=token, token_type="bearer")
