@@ -46,6 +46,7 @@ class Document(Base):
     filename = Column(String(255), nullable=False)
     file_path = Column(String(500), nullable=False)
     uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    content = Column(Text)
 
     owner = relationship("User", back_populates="documents") 
 
@@ -72,7 +73,7 @@ class Messages(Base):
     id = Column(Integer, primary_key=True, index=True)
     conversation_id = Column(Integer, ForeignKey("conversation.id"), nullable=False)
     role = Column(String(50), nullable=False)
-    content = Column(Text, nullable=False)
+    content = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     owner_m = relationship("Conversation", back_populates="messages") 

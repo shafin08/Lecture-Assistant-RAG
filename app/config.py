@@ -48,6 +48,7 @@ JWT_EXPIRATION_MINUTES = int(os.getenv("JWT_EXPIRATION_MINUTES"))
 # --- Paths ---
 CHROMA_DB_DIR = "chroma_db"
 BM25_INDEX_PATH = "data/bm25_index.pkl"
+UPLOADS_DIR = "upload"
 
 # --- Validation ---
 def validate_config():
