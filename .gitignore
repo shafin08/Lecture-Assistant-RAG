@@ -17,3 +17,6 @@ chroma_db/
 
 #DS store
 .DS_Store
+
+#Upload Directory
+upload/
