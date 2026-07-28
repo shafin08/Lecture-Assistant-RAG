@@ -9,85 +9,38 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pickle
-from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma
-from config import (
-    PROCESSED_DATA_DIR,
-    CHROMA_DB_DIR,
-    EMBEDDING_MODEL,
+from langchain_openai import OpenAIEmbeddings        # converts text into vectors
+from langchain_chroma import Chroma                   # the vector database
+from app.config import (
+    CHROMA_DB_DIR,      # where ChromaDB is saved on disk
+    EMBEDDING_MODEL,    # which OpenAI embedding model to use
 )
 
-def load_chunks():
-    """
-    Loads chunks from data/processed/chunks.pkl
-    that were saved by chunker.py
-    """
 
-    filepath = os.path.join(PROCESSED_DATA_DIR, "chunks.pkl")
+def get_vectordb():
 
-    with open(filepath, "rb") as f:
-        chunk = pickle.load(f)
-        print(f"Loaded: {len(chunk)} chunks")
-        return chunk
-    
-def embed_and_store(chunks):
-    """
-    Creates embeddings for each chunk using OpenAI
-    and stores everything in ChromaDB.
-    """
-    
+
     # Set up OpenAI embeddings
     # This is what converts text into vectors
     embeddings = OpenAIEmbeddings(
         model=EMBEDDING_MODEL
-
-    )
-
     
-    # Chroma.from_documents() does everything in one call:
-    # - embeds every chunk
-    # - stores text + vector + metadata
-    # - saves to chroma_db/ folder
-    vector_store = Chroma.from_documents(
-        collection_name="Naruto_vector_embeddings",
-        documents=chunks,
-        embedding=embeddings,
+    )
+    vector_db = Chroma(
+        collection_name="User_Lecture_VectorDB",
+        embedding_function=embeddings,
         persist_directory=CHROMA_DB_DIR
-       
-
+               
     )
 
-    print(f"Stored {len(chunks)} chunks in ChromaDB directory")
+    return vector_db
 
-    return vector_store
+def add_chunks_vectordb(chunks):
+    vector_db = get_vectordb()
+    vector_db.add_documents(chunks)
+    return f"Chunks added: {len(chunks)}"
 
-    
-
-def run_embedder():
-
-    chunks = load_chunks()
-
-    if not chunks:
-        return None
-
-    embed_and_store(chunks)
-
-  
-
-  
-if __name__ == "__main__":
-    run_embedder()
-
-
-
-       
-
-
-    
-    
-
-
-
-
-    
+def delete_document_vectordb(document_id):
+    vector_db = get_vectordb()
+    vector_db.delete(where={"document_id": str(document_id)})
+    return "User chunks successfully deleted"

@@ -13,6 +13,8 @@ from app.database import get_db             # database dependency
 from app.models import User, Document       # the table models
 from app.api.dependencies import get_current_user  # auth protection 
 from app.services.pdf_service import process_pdf    # PDF logic 
+from app.rag.chunker import chunk_documents
+from app.rag.embedder import add_chunks_vectordb, delete_document_vectordb
 from pydantic import BaseModel               # response models
 from datetime import datetime                # for response timestamps
 from sqlalchemy import select
@@ -71,8 +73,17 @@ async def upload(user: User = Depends(get_current_user), db: Session = Depends(g
      db.commit()
      db.refresh(new_doc)
 
-    # NOTE: In Phase 4 you'll add chunking + embedding here
-    # so the document becomes searchable
+     # Use try and except in case OpenAI API fails
+     try:
+      chunks = chunk_documents(processed_pdf["text"], user.id, new_doc.id, new_doc.file_path)
+      add_chunks_vectordb(chunks)
+     except Exception:
+        db.delete(new_doc)
+        db.commit()
+        if os.path.exists(processed_pdf["filepath"]):
+           os.remove(processed_pdf["filepath"])
+        raise HTTPException(status_code=500, detail="Failed to embed documents")
+
 
      return {
         "message": "Document uploaded successfully",
@@ -83,7 +94,7 @@ async def upload(user: User = Depends(get_current_user), db: Session = Depends(g
     except Exception as e:
        raise HTTPException(
           status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-          detail=f"Failed to process pdf: str({e})"
+          detail=f"Failed to process pdf: {e}"
        )
     
 @router.get("/getdocs", response_model=list[DocumentResponse])
@@ -117,14 +128,20 @@ async def delete_documents(document_id: int, user: User = Depends(get_current_us
          status_code=status.HTTP_403_FORBIDDEN,
          detail="Not allowed to delete this document"
       )
+
+   # Use try and except in case OpenAI API fails
+   try:
+    delete_document_vectordb(document_id)
+   except Exception:
+      raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not delete document in CHROMA DB")
    
    if os.path.exists(document.file_path):
       os.remove(document.file_path)
 
    db.delete(document)
    db.commit()
-   # NOTE: In Phase 4 you'll also delete this document's chunks
-   # from ChromaDB here
+
+   
 
    return {
       "message": "Document successfully deleted"

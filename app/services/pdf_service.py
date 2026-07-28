@@ -10,6 +10,7 @@ import re                          # cleaning text with regex patterns
 import pdfplumber                  # extracting text from PDF files
 from fastapi import UploadFile     # type hint for the uploaded file
 from app.config import UPLOADS_DIR # where to save uploaded PDFs
+import uuid
 
 
 def sanitize_filename(filename: str):
@@ -40,8 +41,10 @@ def save_pdf_file(content: bytes, file: UploadFile, usr_id):
     os.makedirs(usr_dir, exist_ok=True)
     clean_filename = sanitize_filename(file.filename)
 
+    unique_filename = f"{uuid.uuid4().hex}_{clean_filename}" # Add uuid infront incase user upload file with the same name
 
-    filepath = os.path.join(usr_dir, clean_filename)
+
+    filepath = os.path.join(usr_dir, unique_filename)
     with open(filepath, "wb") as f:
         f.write(content)
     
