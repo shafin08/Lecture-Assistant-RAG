@@ -12,22 +12,23 @@ import time
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from rag.retriever import load_vectorstore, load_bm25, hybrid_search
-from rag.reranker import run_reranker
+from app.rag.retriever import hybrid_search
+from app.rag.reranker import run_reranker
 from config import LLM_MODEL, OPENAI_API_KEY
 
 # System prompt — tells the LLM exactly how to behave
-SYSTEM_PROMPT = """You are an expert Naruto chatbot. You answer questions 
-about Naruto characters using ONLY the context provided below.
+SYSTEM_PROMPT = """
 
-Rules you must follow:
-1. Use the provided context as your ONLY source of information
-2. If there is no relevant information in the context, say "I don't have enough information about that character or topic"
-3. Always mention which url the character page your answer came from
-4. Be conversational and helpful
-5. You can make reasonable inferences from the context
+You are a study assistant. Answer the student's question using ONLY 
+the lecture notes provided in the context below.
 
-
+Rules:
+1. Only use information from the provided context
+2. If the answer isn't in the context, say "I couldn't find that in 
+   your uploaded notes" — do not use outside knowledge
+3. Cite which lecture file the information came from by citing filepath
+4. Explain concepts clearly, like a helpful tutor
+5. If the student asks for clarification, break it down simply
 
 Context:
 {context}"""
@@ -46,11 +47,11 @@ def build_context(chunks):
     counter = 1
 
     for chunk in chunks:
-         title = chunk.metadata.get("title", "Unknown")
-         url = chunk.metadata.get("source", "")
+         title = chunk.metadata.get("user_id", "Unknown")
+         source = chunk.metadata.get("filepath", "")
          content = chunk.page_content
 
-         temp = f"Source {counter}: {title} ({url})\nContent: {content}\n\n"
+         temp = f"Source {counter}: {title} ({source})\nContent: {content}\n\n"
          formatted_context += temp
 
          counter += 1
@@ -58,24 +59,6 @@ def build_context(chunks):
     return formatted_context
 
 
-    
-
-def get_sources(chunks):
-
-
-    seen = set()
-    sources = []
-
-    for chunk in chunks:
-        title = chunk.metadata.get("title", "Unknown")
-        url = chunk.metadata.get("url", " ")
-
-        if title not in seen:
-            seen.add(title)
-            sources.append({"title": title, "url": url})
-
-    
-    return sources
 
 def rewrite_query(query, llm_model, chathistory=[]):
     if len(chathistory) == 0:
@@ -106,8 +89,7 @@ def rewrite_query(query, llm_model, chathistory=[]):
     
 
 
-def ask_llm(query, vector_db, bm_25, reranker, chathistory=[]):
-    t0 = time.time()
+def ask_llm(query, vector_db, bm_25, reranker, user_id, conversation_id, chathistory=[]):
     
     llm_model = ChatOpenAI(
         model=LLM_MODEL,
@@ -115,28 +97,20 @@ def ask_llm(query, vector_db, bm_25, reranker, chathistory=[]):
         max_retries=10,
         timeout=120
     )
-
-    query = rewrite_query(query, llm_model, chathistory=chathistory)
-
-    t1 = time.time()
-    print(f"Query rewrite: {t1-t0}")
-
-    print(f"Rewritten query: {query}")
-
-
-    search_results = hybrid_search(query, vector_db, bm_25)
-    t2 = time.time()
-    print(f"Search Result: {t2-t1}")
-
-    rerank_results = run_reranker(query, reranker, search_results)
     
-    t3 = time.time()
-    print(f"Rerank: {t3-t2}")
+    # query = rewrite_query(query, llm_model, chathistory=chathistory)
 
 
+
+
+    search_results = hybrid_search(query, vector_db, bm_25, user_id, conversation_id)
+
+    if not search_results:
+        return "I couldn't find anything about that in your uploaded notes"
+ 
+
+    rerank_results = run_reranker(query, search_results) # Note: Later add the reranker model
     
-
-    sources = get_sources(rerank_results)
     llm_context = build_context(rerank_results)
     '''
     for chunk in rerank_results:
@@ -145,25 +119,25 @@ def ask_llm(query, vector_db, bm_25, reranker, chathistory=[]):
         print(f"Content: {chunk.page_content}\n\n")
     '''
         
-    
+
     messages = [
            SystemMessage(content=SYSTEM_PROMPT.format(context=llm_context))
-    ]
+    ] 
+    messages.append(HumanMessage(content=query))
 
+    """
     for chat in chathistory:
         if chat["role"] == "user":
             messages.append(HumanMessage(content=chat["content"]))
         elif chat["role"] == "assistant":
             messages.append(AIMessage(content=chat["content"]))
     
-    messages.append(HumanMessage(content=query))
+    
     chathistory.append(HumanMessage(content=query))
+    """
 
-
-    t4 = time.time()
-    print(f"LLM Gen: {t4-t3}")
-
-    print(llm_context)
+    response = llm_model.invoke(messages)
+    print(response.content)
     
     '''
     for items in rerank_results:
@@ -174,7 +148,7 @@ def ask_llm(query, vector_db, bm_25, reranker, chathistory=[]):
         print(f"Content: {items.page_content}\n\n")
     '''
  
-    return messages
+    return response.content
 
 
 

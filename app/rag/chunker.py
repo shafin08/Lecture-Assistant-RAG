@@ -14,7 +14,7 @@ from app.config import CHUNK_SIZE, CHUNK_OVERLAP                     # chunk set
 
 
 
-def chunk_documents(text, user_id, document_id, filepath):
+def chunk_documents(text, user_id, conversation_id, document_id, filepath):
    '''
    Chunks the user uploaded pdf document
    '''
@@ -24,7 +24,7 @@ def chunk_documents(text, user_id, document_id, filepath):
          chunk_overlap = CHUNK_OVERLAP, # overlap between chunks  
        )
    
-   doc = Document(page_content=text, metadata={"user_id": str(user_id), "document_id": str(document_id), "filepath":filepath })
+   doc = Document(page_content=text, metadata={"user_id": user_id, "document_id": document_id, "conversation_id": conversation_id, "filepath":filepath })
    chunks = chunk_splitter.split_documents([doc]) # List of chunks as langchain document objects
    return chunks
 

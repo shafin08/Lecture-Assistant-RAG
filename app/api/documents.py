@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session          # database session type
 import os                                    # deleting files from disk
 
 from app.database import get_db             # database dependency
-from app.models import User, Document       # the table models
+from app.models import User, Document, Conversation     # the table models
 from app.api.dependencies import get_current_user  # auth protection 
 from app.services.pdf_service import process_pdf    # PDF logic 
 from app.rag.chunker import chunk_documents
@@ -34,7 +34,7 @@ class UploadResponse(BaseModel):
     document: DocumentResponse
 
 @router.post("/upload", response_model=UploadResponse)
-async def upload(user: User = Depends(get_current_user), db: Session = Depends(get_db), file: UploadFile = File()):
+async def upload(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db), file: UploadFile = File()):
     '''
     Endpoint for uploading documents
     '''
@@ -48,6 +48,19 @@ async def upload(user: User = Depends(get_current_user), db: Session = Depends(g
             detail="File is not a valid PDF"
         )
     await file.seek(0)
+
+    # Check if the conversation session exists 
+    check_conversation = db.scalar(select(Conversation).where(Conversation.id == conversation_id))
+    if not check_conversation:
+        raise HTTPException(
+         status_code=status.HTTP_404_NOT_FOUND,
+         detail="Conversations session doesn't exists"
+      )
+    elif check_conversation.user_id != user.id:
+         raise HTTPException(
+          status_code=status.HTTP_404_NOT_FOUND,
+          detail="Conversations session doesn't exists"
+      )
     
     try:
      content = await file.read()
@@ -64,6 +77,7 @@ async def upload(user: User = Depends(get_current_user), db: Session = Depends(g
      # Create new document in database record
      new_doc = Document(
         user_id = user.id,
+        conversation_id = conversation_id,
         filename = processed_pdf["filename"],
         file_path =  processed_pdf["filepath"],
         content= processed_pdf["text"]
@@ -74,9 +88,10 @@ async def upload(user: User = Depends(get_current_user), db: Session = Depends(g
      db.refresh(new_doc)
 
      # Use try and except in case OpenAI API fails
+     # Chunks the user upload document content
      try:
-      chunks = chunk_documents(processed_pdf["text"], user.id, new_doc.id, new_doc.file_path)
-      add_chunks_vectordb(chunks)
+      chunks = chunk_documents(processed_pdf["text"], user.id, conversation_id, new_doc.id, new_doc.file_path)
+      add_chunks_vectordb(chunks) # Embed the document
      except Exception:
         db.delete(new_doc)
         db.commit()
@@ -130,6 +145,7 @@ async def delete_documents(document_id: int, user: User = Depends(get_current_us
       )
 
    # Use try and except in case OpenAI API fails
+   # Delete documents from vector database
    try:
     delete_document_vectordb(document_id)
    except Exception:
