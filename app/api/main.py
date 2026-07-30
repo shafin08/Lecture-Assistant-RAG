@@ -15,6 +15,8 @@ import uvicorn
 from app.database import create_tables
 from app.api import auth  
 from app.api import documents
+from app.api import chat
+
 
 
 
@@ -57,6 +59,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(documents.router)
+app.include_router(chat.router)
 
 
 

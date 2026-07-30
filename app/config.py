@@ -15,7 +15,7 @@ LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
 # --- Models ---
 LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
-RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
+RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-2-v2"
 
 # --- Scraping ---
 ANIME_SERIES = os.getenv("ANIME_SERIES", "naruto")

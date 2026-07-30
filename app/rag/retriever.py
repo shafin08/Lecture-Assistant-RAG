@@ -12,73 +12,73 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pickle
-from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma
-from langchain_community.retrievers import BM25Retriever
-from config import (
+from langchain_community.retrievers import BM25Retriever         # keyword search
+from langchain.schema import Document                            # rebuilding chunks for BM25
+from app.rag.embedder import get_vectordb
+from app.config import (
     CHROMA_DB_DIR,
-    PROCESSED_DATA_DIR,
     EMBEDDING_MODEL,
     OPENAI_API_KEY,
     TOP_K_RETRIEVAL
 )
 
 
-def load_vectorstore():
-    """
-    Loads the existing ChromaDB vectorstore from disk.
-    This is the semantic search component.
-    """
+def get_user_chunks(user_id, conversation_id):
+    vector_db = get_vectordb()
+        
+    # Fetch this conversation's chunks with their text and metadata
+    usr_chunks = vector_db.get(where={"$and":[
+        {"user_id": user_id},
+        {"conversation_id": conversation_id}
+    ]})
 
-    embeddings = OpenAIEmbeddings(
-        model=EMBEDDING_MODEL
+    document = []
+    for text, metadata in zip(usr_chunks["documents"], usr_chunks["metadatas"]):
+        document.append(
+            Document(page_content=text, metadata=metadata)
+        )
 
-    )
-    # Loading the vector database from the disk
-    vector_store = Chroma(
-        collection_name="Naruto_vector_embeddings",
-        embedding_function=embeddings,
-        persist_directory=CHROMA_DB_DIR
+    return document
+
+def keyword_search(query, bm25retriever, chunks):
+
+    bm25 = BM25Retriever.from_documents(chunks)
+    bm25.k = 3
+
+    results = bm25.invoke(query)
+    return results
+
     
-    )
-
-    
-
-    return vector_store
-
-def load_bm25():
-    """
-    Loads chunks from disk and creates a BM25 retriever.
-    This is the keyword search component.
-    """
-
-    filepath = os.path.join(PROCESSED_DATA_DIR, "chunks.pkl")
-
-    with open(filepath, "rb") as f:
-        chunks = pickle.load(f)
 
 
-    bm_25_retriever = BM25Retriever.from_documents(documents=chunks)
-    bm_25_retriever.k = 3
-
-    return bm_25_retriever
-
-def hybrid_search(query,vectorstore,bm25retriever):
+def hybrid_search(query,vectorstore,bm25retriever, user_id, conversation_id):
     """
     Combines semantic search and BM25 keyword search.
     Returns a non duplicated list of relevant chunks.
     """
     # Semantic search — finds chunks with similar meaning
-    semantic_search = vectorstore.similarity_search(query, k=TOP_K_RETRIEVAL)
+    # Note: later change to given vector db
 
+    convo_chunks = get_user_chunks(user_id, conversation_id)
 
+    if not convo_chunks:
+        return []
+    
+    vector_db = get_vectordb()
+
+    semantic_search = vector_db.similarity_search(
+        query, 
+        k= 5,
+        filter={"$and":[
+        {"user_id": user_id},
+        {"conversation_id": conversation_id}
+    ]})
 
     # Keyword search - use bm_25
-    keyword_search = bm25retriever.invoke(query)
+    bm25_search = keyword_search(query, bm25retriever, convo_chunks)
 
 
-    combined_search = semantic_search + keyword_search
+    combined_search = semantic_search + bm25_search
 
     seen = set()
 

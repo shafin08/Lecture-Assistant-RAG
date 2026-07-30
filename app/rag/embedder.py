@@ -19,7 +19,6 @@ from app.config import (
 
 def get_vectordb():
 
-
     # Set up OpenAI embeddings
     # This is what converts text into vectors
     embeddings = OpenAIEmbeddings(
@@ -42,5 +41,5 @@ def add_chunks_vectordb(chunks):
 
 def delete_document_vectordb(document_id):
     vector_db = get_vectordb()
-    vector_db.delete(where={"document_id": str(document_id)})
+    vector_db.delete(where={"document_id": document_id})
     return "User chunks successfully deleted"

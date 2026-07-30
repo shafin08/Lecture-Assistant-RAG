@@ -8,16 +8,20 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config import TOP_K_RERANK
+from config import TOP_K_RERANK, RERANKER_MODEL
+from sentence_transformers import CrossEncoder
 
 
-def run_reranker(query, model, chunks):
+
+def run_reranker(query,chunks):
+    # Note: later load reranker from the app
 
     if not chunks:
         return []
 
 
     pairs = []
+    model = CrossEncoder(RERANKER_MODEL)
 
     for chunk in chunks:
         pairs.append([query,chunk.page_content])
@@ -35,7 +39,7 @@ def run_reranker(query, model, chunks):
     counter = 0
 
     for item in scored_results:
-        if counter < TOP_K_RERANK:
+        if counter < 3:
             final_chunks.append(item[0])
         
         counter += 1
