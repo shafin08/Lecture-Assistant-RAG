@@ -13,9 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from app.database import create_tables
-from app.api import auth  
-from app.api import documents
-from app.api import chat
+from app.api import auth, documents, chat, conversation 
+from app.rag.embedder import get_vectordb
+from sentence_transformers import CrossEncoder
+from config import RERANKER_MODEL
+
+
 
 
 
@@ -30,13 +33,15 @@ from app.api import chat
 async def lifespan(app:FastAPI):
     # This runs once when the server starts
     create_tables()
+    app.state.vector_db = get_vectordb()
+    app.state.reranker_model = CrossEncoder(RERANKER_MODEL)
     yield
 
 
 
 app = FastAPI(
-    title="Financial RAG API",
-    description="Personal Financial Assistant",
+    title="Lecture RAG API",
+    description="Personal Lecture Assistant",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -60,6 +65,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(documents.router)
 app.include_router(chat.router)
+app.include_router(conversation.router)
 
 
 
@@ -69,7 +75,7 @@ app.include_router(chat.router)
 @app.get("/health")
 def get_health():
     return {"status": "ok",
-            "message": "Chhatbot RAG API is running"
+            "message": "Chatbot RAG API is running"
             
     }
 

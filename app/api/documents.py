@@ -4,7 +4,9 @@ from fastapi import (
     HTTPException,       # returning errors
     status,              # readable status codes
     UploadFile,          # the uploaded file type
-    File                 # marks a parameter as a file upload
+    File,
+    Request
+                                    
 )
 from sqlalchemy.orm import Session          # database session type
 import os                                    # deleting files from disk
@@ -34,11 +36,11 @@ class UploadResponse(BaseModel):
     document: DocumentResponse
 
 @router.post("/upload", response_model=UploadResponse)
-async def upload(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db), file: UploadFile = File()):
+async def upload(conversation_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db), file: UploadFile = File()):
     '''
     Endpoint for uploading documents
     '''
-
+    vector_db = http_request.app.state.vector_db
 
     # Validate if its a pdf file
     content = await file.read(4)
@@ -90,8 +92,8 @@ async def upload(conversation_id: int, user: User = Depends(get_current_user), d
      # Use try and except in case OpenAI API fails
      # Chunks the user upload document content
      try:
-      chunks = chunk_documents(processed_pdf["text"], user.id, conversation_id, new_doc.id, new_doc.file_path)
-      add_chunks_vectordb(chunks) # Embed the document
+      chunks = chunk_documents(processed_pdf["text"], user.id, conversation_id, new_doc.id, new_doc.file_path, new_doc.filename)
+      add_chunks_vectordb(vector_db, chunks) # Embed the document
      except Exception:
         db.delete(new_doc)
         db.commit()
@@ -162,26 +164,4 @@ async def delete_documents(document_id: int, user: User = Depends(get_current_us
    return {
       "message": "Document successfully deleted"
    }
-
-
-      
-
-   
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
