@@ -48,7 +48,7 @@ def build_context(chunks):
 
     for chunk in chunks:
          title = chunk.metadata.get("user_id", "Unknown")
-         source = chunk.metadata.get("filepath", "")
+         source = chunk.metadata.get("filename", "")
          content = chunk.page_content
 
          temp = f"Source {counter}: {title} ({source})\nContent: {content}\n\n"
@@ -65,14 +65,17 @@ def rewrite_query(query, llm_model, chathistory=[]):
         return query
     
     messages = [
-        SystemMessage(content="""Rewrite the user's question to be self contained 
-        using the conversation history. 
-        Example:
-        History: Q: What village is Sasuke from? A: Sasuke is from Konoha
-        Question: Who is his love interest?
-        Rewritten: Who is Sasuke's love interest?
-        
-        Only return the rewritten question, nothing else.""")
+        SystemMessage(content="""Rewrite the student's question to be self-contained 
+         using the conversation history, so it can be used to search their lecture notes.
+         Resolve any references like "it", "that", "this concept", "the one you mentioned"
+         into the actual topic name from the earlier conversation.
+
+         Example:
+         History: Q: What is a binary search tree? A: A BST is a tree where each node's left child is smaller and right child is larger.
+         Question: What's its time complexity?
+         Rewritten: What is the time complexity of a binary search tree?
+
+         Only return the rewritten question, nothing else.""")
 
     ]
 
@@ -89,7 +92,7 @@ def rewrite_query(query, llm_model, chathistory=[]):
     
 
 
-def ask_llm(query, vector_db, bm_25, reranker, user_id, conversation_id, chathistory=[]):
+def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]):
     
     llm_model = ChatOpenAI(
         model=LLM_MODEL,
@@ -98,18 +101,18 @@ def ask_llm(query, vector_db, bm_25, reranker, user_id, conversation_id, chathis
         timeout=120
     )
     
-    # query = rewrite_query(query, llm_model, chathistory=chathistory)
+    query = rewrite_query(query, llm_model, chathistory=chathistory)
 
 
 
 
-    search_results = hybrid_search(query, vector_db, bm_25, user_id, conversation_id)
+    search_results = hybrid_search(query, vector_db, user_id, conversation_id)
 
     if not search_results:
         return "I couldn't find anything about that in your uploaded notes"
  
 
-    rerank_results = run_reranker(query, search_results) # Note: Later add the reranker model
+    rerank_results = run_reranker(query, reranker, search_results) # Note: Later add the reranker model
     
     llm_context = build_context(rerank_results)
     '''
@@ -123,21 +126,20 @@ def ask_llm(query, vector_db, bm_25, reranker, user_id, conversation_id, chathis
     messages = [
            SystemMessage(content=SYSTEM_PROMPT.format(context=llm_context))
     ] 
-    messages.append(HumanMessage(content=query))
-
-    """
+    
     for chat in chathistory:
-        if chat["role"] == "user":
-            messages.append(HumanMessage(content=chat["content"]))
-        elif chat["role"] == "assistant":
-            messages.append(AIMessage(content=chat["content"]))
+        if chat.get("role") == "user":
+            messages.append(HumanMessage(content=chat.get("content")))
+        elif chat.get("role") == "assistant":
+            messages.append(AIMessage(content=chat.get("content")))
     
-    
+    messages.append(HumanMessage(content=query))
     chathistory.append(HumanMessage(content=query))
-    """
+    
 
     response = llm_model.invoke(messages)
     print(response.content)
+    print(chathistory)
     
     '''
     for items in rerank_results:

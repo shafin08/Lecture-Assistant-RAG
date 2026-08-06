@@ -34,12 +34,17 @@ def get_vectordb():
 
     return vector_db
 
-def add_chunks_vectordb(chunks):
-    vector_db = get_vectordb()
+def add_chunks_vectordb(vector_db, chunks):
     vector_db.add_documents(chunks)
     return f"Chunks added: {len(chunks)}"
 
-def delete_document_vectordb(document_id):
-    vector_db = get_vectordb()
-    vector_db.delete(where={"document_id": document_id})
+def delete_document_vectordb(user_id, vector_db, conversation_id):
+    vector_db.delete(
+        where={
+            "$and": [
+                {"user_id": user_id},
+                {"conversation_id": conversation_id}
+            ]
+        }
+    )
     return "User chunks successfully deleted"
