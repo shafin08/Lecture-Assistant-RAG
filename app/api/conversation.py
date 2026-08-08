@@ -118,7 +118,7 @@ async def change_title(title: RenameRequest, conversation_id: int, user: User = 
                  status_code=status.HTTP_400_BAD_REQUEST,
                  detail="Couldn't rename the chat"
                 )
-    return True
+    return rename_chat
 
 @router.delete("/{conversation_id}")
 def delete_convo(conversation_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
