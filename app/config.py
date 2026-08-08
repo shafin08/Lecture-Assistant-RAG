@@ -17,15 +17,6 @@ LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-2-v2"
 
-# --- Scraping ---
-ANIME_SERIES = os.getenv("ANIME_SERIES", "naruto")
-MAX_PAGES = int(os.getenv("MAX_PAGES", 5))
-
-WIKI_URLS = {
-    "naruto": "https://naruto.fandom.com/wiki",
-    "onepiece": "https://onepiece.fandom.com/wiki",
-    "attackontitan": "https://attackontitan.fandom.com/wiki",
-}
 
 # --- Chunking ---
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 512))
@@ -47,16 +38,30 @@ JWT_EXPIRATION_MINUTES = int(os.getenv("JWT_EXPIRATION_MINUTES"))
 
 # --- Paths ---
 CHROMA_DB_DIR = "chroma_db"
-BM25_INDEX_PATH = "data/bm25_index.pkl"
 UPLOADS_DIR = "upload"
+
+CORS_ORIGIN = os.getenv("CORS_ORIGIN", "http://localhost:8501").split(",")
 
 # --- Validation ---
 def validate_config():
-    missing = []
-    if not OPENAI_API_KEY:
-        missing.append("OPENAI_API_KEY")
+    """
+    Checks that all required environment variables are set.
+    Called at startup so the app fails fast with a clear error
+    instead of crashing mid-request.
+    """
+    required = {
+        "OPENAI_API_KEY": OPENAI_API_KEY,
+        "DATABASE_URL": DATABASE_URL,
+        "JWT_SECRET_KEY": JWT_SECRET_KEY,
+    }
+
+    missing = [name for name, value in required.items() if not value]
+
     if missing:
-        raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
+        raise ValueError(
+            f"Missing required environment variables: {', '.join(missing)}. "
+            f"Check your .env file."
+        )
 
 if __name__ == "__main__":
     validate_config()

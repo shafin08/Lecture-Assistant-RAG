@@ -4,8 +4,8 @@ from collections import Counter
 vs = get_vectordb()
 
 data = vs.get(where={
-    "$and": [{"user_id":2},
-             {"conversation_id": 5}
+    "$and": [{"user_id":1},
+             {"conversation_id": 4}
 
 ]}
 ,include=["embeddings", "documents", "metadatas"])

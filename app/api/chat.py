@@ -5,6 +5,7 @@
 # ============================================================
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -34,7 +35,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post("", response_model=ChatResponse)
 async def chat(request: ChatRequest, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     '''
     The main query mechanism
@@ -50,8 +51,9 @@ async def chat(request: ChatRequest, http_request: Request, user: User = Depends
         )
 
     chathistory = []
-    check_convo = get_convo(db, user.id, request.conversation_id) # Check if the conversation belongs to the user
-
+    check_convo = get_convo(db, user.id, request.conversation_id) 
+    
+    # Check if the conversation belongs to the user
     if not check_convo:
         raise HTTPException(
          status_code=status.HTTP_404_NOT_FOUND,
@@ -65,23 +67,22 @@ async def chat(request: ChatRequest, http_request: Request, user: User = Depends
             "content": message.content
         })
 
-    if len(convo_messages) == 0:
-        title = generate_title_from_question(request.query)
-        update_title(db, request.conversation_id, title)
-
+   
     save_message(db, request.conversation_id, "user", request.query)
-    try:
-     ask_assistant = ask_llm(request.query, vector_db, reranker_model, user.id, request.conversation_id, chathistory)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate answer: {str(e)}"
-        ) 
-    save_message(db, request.conversation_id, "assistant", ask_assistant)
+    def generate():
+      full_txt = ""
+      for chunk in ask_llm(request.query, vector_db, reranker_model, user.id, request.conversation_id, chathistory):
+         full_txt += chunk.content
+         yield chunk.content
+      save_message(db, request.conversation_id, "assistant", full_txt)
+      if len(convo_messages) == 0:
+        title = generate_title_from_question(full_txt)
+        update_title(db, request.conversation_id, title)
+      
+    
 
-    return {
-        "answer": ask_assistant
-    }
+    return StreamingResponse(generate(), media_type="text/plain")
+    
 
     
 

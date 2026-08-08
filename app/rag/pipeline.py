@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import time
 
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, AIMessageChunk
 from app.rag.retriever import hybrid_search
 from app.rag.reranker import run_reranker
 from config import LLM_MODEL, OPENAI_API_KEY
@@ -98,21 +98,20 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
         model=LLM_MODEL,
         temperature=0.1,
         max_retries=10,
-        timeout=120
+        timeout=120,
+        streaming=True
     )
     
     query = rewrite_query(query, llm_model, chathistory=chathistory)
 
-
-
-
     search_results = hybrid_search(query, vector_db, user_id, conversation_id)
 
     if not search_results:
-        return "I couldn't find anything about that in your uploaded notes"
+        yield AIMessageChunk(content="I couldn't find anything about that in your uploaded notes.")
+        return
  
 
-    rerank_results = run_reranker(query, reranker, search_results) # Note: Later add the reranker model
+    rerank_results = run_reranker(query, reranker, search_results) 
     
     llm_context = build_context(rerank_results)
     '''
@@ -134,11 +133,10 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
             messages.append(AIMessage(content=chat.get("content")))
     
     messages.append(HumanMessage(content=query))
-    chathistory.append(HumanMessage(content=query))
+    
     
 
-    response = llm_model.invoke(messages)
-    print(response.content)
+    
     print(chathistory)
     
     '''
@@ -150,7 +148,7 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
         print(f"Content: {items.page_content}\n\n")
     '''
  
-    return response.content
+    return llm_model.stream(messages)
 
 
 
