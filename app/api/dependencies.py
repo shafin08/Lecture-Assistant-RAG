@@ -15,7 +15,7 @@ from app.models import User                                # User table model
 from app.services.auth_service import decode_token         # your decode function from file 1
 from sqlalchemy import select
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
 

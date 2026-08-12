@@ -48,3 +48,15 @@ def delete_document_vectordb(user_id, vector_db, conversation_id):
         }
     )
     return "User chunks successfully deleted"
+
+
+def delete_document(user_id, vector_db, document_id):
+    vector_db.delete(
+        where={
+            "$and": [
+                {"user_id": user_id},
+                {"document_id": document_id}
+            ]
+        }
+    )
+    return "Document chunks successfully deleted"

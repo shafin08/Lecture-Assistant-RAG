@@ -43,12 +43,12 @@ class UserResponse(BaseModel):
     email: str
     created_at: datetime
 
-@router.post("/register", response_model=TokenResponse)
+@router.post("/register")
 async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     usr_exists = db.query(User).filter(User.email == request.email).first()
 
     if usr_exists:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already registered")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use")
     
     new_pwd = hash_function_pwd(request.password)
     new_user = User(
@@ -60,8 +60,7 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    new_token = create_token(new_user.id, request.email, request.username)
-    return TokenResponse(access_token=new_token, token_type="bearer")
+    return new_user
 
 @router.post("/login", response_model=TokenResponse)
 async def login(request: LoginRequest, db: Session = Depends(get_db)):

@@ -5,7 +5,9 @@ from fastapi import (
     status,              # readable status codes
     UploadFile,          # the uploaded file type
     File,
-    Request
+    Request,
+    Form
+
                                     
 )
 from sqlalchemy.orm import Session          # database session type
@@ -16,7 +18,7 @@ from app.models import User, Document, Conversation     # the table models
 from app.api.dependencies import get_current_user  # auth protection 
 from app.services.pdf_service import process_pdf    # PDF logic 
 from app.rag.chunker import chunk_documents
-from app.rag.embedder import add_chunks_vectordb, delete_document_vectordb
+from app.rag.embedder import add_chunks_vectordb, delete_document
 from pydantic import BaseModel               # response models
 from datetime import datetime                # for response timestamps
 from sqlalchemy import select
@@ -36,7 +38,7 @@ class UploadResponse(BaseModel):
     document: DocumentResponse
 
 @router.post("/upload", response_model=UploadResponse)
-async def upload(conversation_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db), file: UploadFile = File()):
+async def upload(http_request: Request, conversation_id: int = Form(), user: User = Depends(get_current_user), db: Session = Depends(get_db), file: UploadFile = File()):
     '''
     Endpoint for uploading documents
     '''
@@ -68,11 +70,11 @@ async def upload(conversation_id: int, http_request: Request, user: User = Depen
      content = await file.read()
      processed_pdf = process_pdf(content, file, user.id)
 
-     if not processed_pdf["text"]: # if the pdf is empty
+     if not processed_pdf["text"]: # if the pdf is empty then delete pdf file from disk and fails to process uploaded document
          
          if os.path.exists(processed_pdf["filepath"]):
              os.remove(processed_pdf["filepath"])
-         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not extract PDF file, could be empty")
+         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PDF file could be empty")
      
      
      
@@ -115,22 +117,29 @@ async def upload(conversation_id: int, http_request: Request, user: User = Depen
        )
     
 @router.get("/getdocs", response_model=list[DocumentResponse])
-async def list_documents(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def list_documents(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
    """
     Returns all documents belonging to the current user.
     Never returns other users' documents.
     """
    
-   usr_doc = db.scalars(select(Document).where(Document.user_id == user.id)).all()
+   usr_doc = db.scalars(
+           select(Document)
+           .where(Document.user_id == user.id)
+           .where(Document.conversation_id == conversation_id)
+       ).all()
 
-   return usr_doc
+   return usr_doc # Returns a list of document objects or empty list
 
 @router.delete("/{document_id}")
-async def delete_documents(document_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def delete_documents(document_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
    """
     Deletes a document owned by the current user.
     Removes both the file from disk and the database record.
     """
+
+
+   vector_db = http_request.app.state.vector_db
    
    document = db.scalar(select(Document).where(Document.id == document_id))
    if not document:
@@ -149,9 +158,9 @@ async def delete_documents(document_id: int, user: User = Depends(get_current_us
    # Use try and except in case OpenAI API fails
    # Delete documents from vector database
    try:
-    delete_document_vectordb(document_id)
+    delete_document(user.id, vector_db, document_id)
    except Exception:
-      raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not delete document in CHROMA DB")
+      raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not delete document")
    
    if os.path.exists(document.file_path):
       os.remove(document.file_path)
