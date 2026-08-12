@@ -7,62 +7,29 @@
 
 import streamlit as st
 import requests
+from api_client import (
+    register,
+    login, 
+    create_conversation,
+    list_conversation,
+    get_conversation,
+    change_title,
+    delete_convo,
+    upload,
+    list_documents,
+    delete_document,
+    send_message
+)
 
-# ============================================================
-# Page Config — must be the very first Streamlit call
-# ============================================================
 
-
-
+# Configure the Streamlit page, must be the first streamlit call
 st.set_page_config(
-    page_title= "Naruto AI ChatBot",
-    page_icon="🍥",
+    page_title= "Personal Lecture Assistant",
+    page_icon="📚",
     layout="centered",
 )
 
-API_URL = "http://127.0.0.1:8000"
-
-
-
-# ============================================================
-# Helper Functions
-# ============================================================
-
-def check_api_health():
-    try:
-        response = requests.get(f"{API_URL}/health", timeout=3)
-        return response.status_code == 200
-        
-    except:    
-        return False
-    
-def send_question(query, chathistory):
-    try:
-        response = requests.post(f"{API_URL}/chat", json = {
-            "query": query,
-            "chathistory": chathistory
-        }, 
-        timeout=60,
-        stream=True
-                                 
-        )
-
-        if response.status_code == 200:
-            return response
-        else:
-            return None
-
-        
-    except requests.exceptions.ConnectionError:
-        return None
-    except requests.exceptions.Timeout:
-        return None
-    except Exception:
-        return None
-
-def clear_chat():
-    st.session_state.messages = []
-    st.session_state.chat_history = []
+API_URL = "http://localhost:8000"
 
 
 # ============================================================
@@ -70,91 +37,215 @@ def clear_chat():
 # Runs on every rerun — only sets values if they don't exist
 # ============================================================
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+if "token" not in st.session_state:
+    st.session_state.token = None
 
+if "conversation_id" not in st.session_state:
+    st.session_state.conversation_id = None
 
-# ============================================================
-# Sidebar
-# ============================================================
-
-with st.sidebar:
-    if st.sidebar.button("Clear chat", use_container_width=True):
-        clear_chat()
-        st.rerun()
-    st.divider()
-
-    
-
-
-
+if "uploader_key" not in st.session_state:
+    st.session_state.uploader_key = 0
 
 
 # ============================================================
-# Main Chat Interface
+# Helper Functions
 # ============================================================
 
+def sidebar():
+    with st.sidebar:
 
-st.title("🍥 Welcome to Naruto Chatbot!")
-st.caption("A friendly and helpful AI-powered chatbot that will answer any questions about the Naruto Series")
+        # Create new chat button
+        if st.button("New Chat", use_container_width=True):
+            new_convo = create_conversation(st.session_state.token)
+            st.session_state.conversation_id = new_convo['id']
+            st.rerun()
 
-st.divider()
+        st.divider()
 
-for message in st.session_state.messages:
-    if message["role"] == "user":
-        with st.chat_message(message["role"], avatar="ui/naruto.png"):
-            st.write(message["content"])
-    elif message["role"] == "assistant":
-         with st.chat_message(message["role"], avatar="ui/mecha_naruto.webp"):
-            st.write(message["content"])
+        # Display conversation list
+        st.subheader("Your Chats")
 
+        usr_conversation = list_conversation(st.session_state.token)
+        if not usr_conversation:
+            st.caption("No chats yet, start a new chat above")
+            
+        for convo in usr_conversation:
+            col_chat, col_menu = st.columns([5, 1])
 
-query = st.chat_input("Ask about any Naruto character....")
+            # For chat selection
+            with col_chat:
+                is_selected = convo['id'] == st.session_state.conversation_id
+                label = f"{'▶ ' if is_selected else ''}{convo['title']}"
+                if st.button(label, key=f"conv_{convo['id']}", use_container_width=True):
+                    st.session_state.conversation_id = convo['id']
+                    st.rerun()
 
-if query:
-    with st.chat_message("user", avatar="ui/naruto.png"):
-        st.write(query)
-    st.session_state.messages.append(
-        {
-            "role": "user",
-            "content": query
-        }
-    )
-
-    with st.chat_message("assistant",avatar="ui/mecha_naruto.webp"):
-        with st.spinner("Thinking..."):
-            result = send_question(query, st.session_state.chat_history)
-            response = st.write_stream(result.iter_content(chunk_size=13, decode_unicode=True))
-
-
-        if response:
-
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": response,
-            })
-
-            # Add both messages to chat history for FastAPIs
-            # This enables multi-turn conversation
-            st.session_state.chat_history.append({
-                "role": "user",
-                "content": query
-            })
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": response
-            })
-        else:
-            error_message = "Could not connect to the API"
-
-            st.error(error_message)
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": error_message,
-            })
+            # Menu for the option to delete or rename a chat
+            with col_menu:
+                with st.popover("⋮", use_container_width=True):
+                    # Rename
+                    new_title = st.text_input(
+                        "Rename",
+                        value=convo["title"],
+                        key=f"rename_input_{convo['id']}"
+                    )
+                    if st.button("Save", key=f"rename_btn_{convo['id']}"):
+                        try:
+                         change_title(st.session_state.token, convo["id"], new_title)
+                         st.rerun()
+                        except Exception as e:
+                            st.error(str(e))
+                    st.divider()
+                    # Delete chat
+                    if st.button("Delete chat", key=f"delete_btn_{convo['id']}"):
+                        try:
+                            delete_convo(st.session_state.token, convo["id"])
+                            if st.session_state.conversation_id == convo["id"]:
+                                st.session_state.conversation_id = None
+                            st.rerun()
+                        except Exception as e:
+                            st.error(str(e))
 
 
+        st.divider()
+        # Logout button
+        if st.button("Logout", use_container_width=True):
+            st.session_state.token = None
+            st.session_state.conversation_id = None
+            st.rerun()
+
+def chat_area():
+
+    if not st.session_state.conversation_id:
+        st.info("Create or select a chat to get started")    
+    else:
+        token = st.session_state.token
+        conversation_id = st.session_state.conversation_id
+
+        # Display uploaded documents
+        with st.expander("Documents uploaded", expanded=True):
+            try:
+                documents = list_documents(token, conversation_id)
+                if documents:
+                    for doc in documents:
+                        col1, col2 = st.columns([4, 1])
+                        with col1:
+                            st.caption(f"• {doc['filename']}")
+                        with col2:
+                            if st.button("Delete Document", key=f"del_doc_{doc['id']}"):
+                                try:
+                                 delete_document(st.session_state.token, doc['id'])
+                                 st.rerun()
+                                except Exception as e:
+                                    st.error(str(e))
+                                
+                else:
+                    st.caption("No notes uploaded yet")
+                    
+            except Exception as e:
+                st.error(str(e))  
+
+        # Upload widget
+        uploaded = st.file_uploader("Upload a PDF", type={"PDF"}, key=st.session_state.uploader_key, max_upload_size=2000)  
+        if uploaded and st.button("Upload"):
+            with st.spinner("Uploading..."):
+                try:
+                    upload(st.session_state.token, st.session_state.conversation_id, uploaded)
+                    st.toast("Document uploaded!", icon="✅", duration='long')
+                    st.session_state.uploader_key += 1 # Resets the file uploader
+                    st.rerun()
+
+                except Exception as e:
+                    st.error(str(e))
+        st.divider()
+
+        # Main chat area
+        try:
+         convo_messages = get_conversation(st.session_state.token, st.session_state.conversation_id)
+
+         for message in convo_messages['messages']:
+            with st.chat_message(message['role']):
+                st.write(message['content'])
+                    
+        except Exception as e:
+         st.error(str(e))
+
+        query = st.chat_input("Ask anything...")
+
+        if query:
+            with st.chat_message("user"):
+                st.write(query)
+
+            with st.chat_message("assistant"):
+                with st.spinner("Thinking..."):
+                    try:
+                        st.write_stream(send_message(st.session_state.token, st.session_state.conversation_id, query))
+                        
+                    except Exception as e:
+                        st.error(str(e))
+            st.rerun()
+
+
+
+
+
+
+# ============================================================
+# Screen Functions
+# ============================================================
+
+def show_signup():
+    login_tab, register_tab = st.tabs(["Login", "Register"])
+
+    # New user registration tab
+    with register_tab:
+        new_name = st.text_input("Name", key="register_name")
+        new_email = st.text_input("Email", key="register_email")
+        new_password = st.text_input("Password", key="register_password", type="password")
+
+        if st.button("Create account", use_container_width=True):
+            if not new_email or not new_password or not new_name:
+                st.error("Please fill in all the fields")
+            else:
+                success, msg = register(new_email, new_name, new_password)
+                if success:
+                    st.success("Go to the login page")
+                else:
+                    st.error(msg)
+    # User login tab
+    with login_tab:
+        login_email = st.text_input("Email", key="login_email")
+        login_password = st.text_input("Password", key="login_password", type="password")
+
+        if st.button("Login", use_container_width=True):
+         if not login_email or not login_password:
+             st.error("Please fill in all the fields")
+         else:
+            token, msg = login(login_email, login_password)
+            if token:
+                st.session_state.token = token
+                st.rerun()
+            else:
+                st.error(msg)
+
+
+
+
+
+def main_app():
+    sidebar()
+    chat_area()
+
+
+
+
+# ============================================================
+# The gate that decides which screen to show the user
+# ============================================================
+
+if st.session_state.token is None:
+    show_signup()
+else:
+    main_app()
 

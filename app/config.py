@@ -57,7 +57,7 @@ def validate_config():
 
     missing = [name for name, value in required.items() if not value]
 
-    if missing:
+    if missing: 
         raise ValueError(
             f"Missing required environment variables: {', '.join(missing)}. "
             f"Check your .env file."
