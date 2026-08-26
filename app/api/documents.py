@@ -1,26 +1,26 @@
 from fastapi import (
-    APIRouter,           # groups the document endpoints
-    Depends,             # dependency injection
-    HTTPException,       # returning errors
-    status,              # readable status codes
-    UploadFile,          # the uploaded file type
+    APIRouter,           
+    Depends,             
+    HTTPException,       
+    status,             
+    UploadFile,          
     File,
     Request,
     Form
 
                                     
 )
-from sqlalchemy.orm import Session          # database session type
-import os                                    # deleting files from disk
+from sqlalchemy.orm import Session          
+import os                                    
 
-from app.database import get_db             # database dependency
-from app.models import User, Document, Conversation     # the table models
-from app.api.dependencies import get_current_user  # auth protection 
-from app.services.pdf_service import process_pdf    # PDF logic 
+from app.database import get_db            
+from app.models import User, Document, Conversation     
+from app.api.dependencies import get_current_user  
+from app.services.pdf_service import process_pdf, delete_message   
 from app.rag.chunker import chunk_documents
 from app.rag.embedder import add_chunks_vectordb, delete_document
-from pydantic import BaseModel               # response models
-from datetime import datetime                # for response timestamps
+from pydantic import BaseModel               
+from datetime import datetime                
 from sqlalchemy import select
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -129,10 +129,12 @@ async def list_documents(conversation_id: int, user: User = Depends(get_current_
            .where(Document.conversation_id == conversation_id)
        ).all()
 
+   
+
    return usr_doc # Returns a list of document objects or empty list
 
 @router.delete("/{document_id}")
-async def delete_documents(document_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def delete_documents(document_id: int, conversation_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
    """
     Deletes a document owned by the current user.
     Removes both the file from disk and the database record.
@@ -156,9 +158,10 @@ async def delete_documents(document_id: int, http_request: Request, user: User =
       )
 
    # Use try and except in case OpenAI API fails
-   # Delete documents from vector database
+   # Delete documents from vector database and clear conversation history
    try:
     delete_document(user.id, vector_db, document_id)
+    delete_message(db, conversation_id) # Clear conversation history
    except Exception:
       raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not delete document")
    

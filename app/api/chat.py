@@ -1,7 +1,7 @@
 # ============================================================
 # app/api/chat.py
-# Chat endpoint — ties the RAG pipeline to conversation history
-# Saves messages, loads history for context, auto-titles chats
+# Chat endpoint — Runs the RAG pipeline
+# Saves messages, loads history for context, takes in a query and output AI response
 # ============================================================
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request

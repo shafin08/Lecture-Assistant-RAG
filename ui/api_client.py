@@ -156,14 +156,14 @@ def list_documents(token, conversation_id):
   except requests.exceptions.RequestException:
      raise Exception("Something went wrong with the request.")
 
-def delete_document(token, document_id):
+def delete_document(token, document_id, conversation_id):
   try:
     response = requests.delete(
           f"{API_URL}/documents/{document_id}",
           headers=auth_headers(token),
-          params={"document_id": document_id},
+          params={"document_id": document_id, "conversation_id": conversation_id},
           timeout=10
-    
+     
         )
     
     response.raise_for_status()
@@ -189,7 +189,7 @@ def send_message(token, conversation_id, query):
            )
        response.raise_for_status()
 
-       for chunk in response.iter_content(chunk_size=8, decode_unicode=True):
+       for chunk in response.iter_content(chunk_size=4, decode_unicode=True):
           if chunk:
              yield chunk
        

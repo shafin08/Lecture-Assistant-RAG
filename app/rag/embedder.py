@@ -51,6 +51,9 @@ def delete_document_vectordb(user_id, vector_db, conversation_id):
 
 
 def delete_document(user_id, vector_db, document_id):
+    '''
+    Delete all chunks of a document in CHROMA DB
+    '''
     vector_db.delete(
         where={
             "$and": [

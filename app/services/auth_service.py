@@ -1,17 +1,15 @@
 # ============================================================
 # app/services/auth_service.py
-# This file contains the core authentication logic — separate from FastAPI so it's reusable and testable.
+# This file contains the core authentication logic. 
 # ============================================================
-
-
 
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from datetime import datetime, timedelta, timezone  # for token expiration times
-from jose import jwt, JWTError                        # for creating/decoding JWT tokens
-from passlib.context import CryptContext              # for password hashing with bcrypt
-from app.config import (                              # your settings from .env
+from datetime import datetime, timedelta, timezone  
+from jose import jwt, JWTError                        
+from passlib.context import CryptContext              
+from app.config import (                              
     JWT_SECRET_KEY,
     JWT_ALGORITHM,
     JWT_EXPIRATION_MINUTES
@@ -35,7 +33,6 @@ def verify_pwd(plain_pwd, hash_pwd):
     Takes in a plain password
     Hash the password
     Check if the hash password is in the database
-    
     """
 
     verify = PWD_CONTEXT.verify(plain_pwd, hash_pwd)
@@ -44,8 +41,8 @@ def verify_pwd(plain_pwd, hash_pwd):
 
 def create_token(user_id, email, username):
     """
-    Create the JWT Token
-    return the JWT Token
+    Create the JWT Token for users authentication for all parts of the app
+    Return the JWT Token
     """
     payload = {
         "id": user_id,
@@ -64,7 +61,7 @@ def create_token(user_id, email, username):
 def decode_token(token):
     """
     Decode the JWT Token
-    
+    Return decoded information or None for JWT Error
     """
     try:
         decoded_token = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])

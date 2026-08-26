@@ -7,13 +7,13 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from fastapi import APIRouter, Depends, HTTPException, status  # FastAPI routing and errors
-from pydantic import BaseModel, EmailStr                        # request/response validation
+from fastapi import APIRouter, Depends, HTTPException, status  
+from pydantic import BaseModel, EmailStr                       
 from datetime import datetime
-from sqlalchemy.orm import Session                              # database session type
-from app.database import get_db                                 # database dependency
-from app.models import User                                     # User table model
-from app.services.auth_service import (                         # your auth logic from file 1
+from sqlalchemy.orm import Session                              
+from app.database import get_db                                
+from app.models import User                                     
+from app.services.auth_service import (                         
     hash_function_pwd,
     verify_pwd,
     create_token
@@ -67,12 +67,12 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     check_user = db.scalar(select(User).where(User.email == request.email))
 
     if not check_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid credentials")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Credentials")
     
     verify_password = verify_pwd(request.password, check_user.password_hash)
 
     if not verify_password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid credentials")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Credentials")
     
     new_token = create_token(check_user.id, request.email, check_user.username)
     return TokenResponse(access_token=new_token, token_type="bearer")

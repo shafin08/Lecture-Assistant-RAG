@@ -134,3 +134,4 @@ def generate_title_from_question(question):
         title = title[:40].rsplit(" ", 1)[0] + "..."
 
     return title
+
