@@ -1,1 +1,1 @@
-# Animechatbot-RAG-system-
+LectureAssistant-RAG-system-
