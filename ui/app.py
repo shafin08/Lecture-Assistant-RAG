@@ -1,12 +1,9 @@
 # ============================================================
 # ui/app.py
-# Streamlit frontend — the chat UI for your Naruto RAG chatbot
-# Run with: streamlit run ui/app.py
-# Make sure FastAPI is running on port 8000 first
+# Streamlit frontend
 # ============================================================
 
 import streamlit as st
-import requests
 from api_client import (
     register,
     login, 
@@ -22,7 +19,7 @@ from api_client import (
 )
 
 
-# Configure the Streamlit page, must be the first streamlit call
+# Configure the Streamlit page
 st.set_page_config(
     page_title= "Personal Lecture Assistant",
     page_icon="📚",
@@ -34,7 +31,8 @@ API_URL = "http://localhost:8000"
 
 # ============================================================
 # Initialize Session State
-# Runs on every rerun — only sets values if they don't exist
+# Runs on every rerun
+# Initialize value that will persist through reruns
 # ============================================================
 
 
@@ -97,7 +95,7 @@ def sidebar():
                         except Exception as e:
                             st.error(str(e))
                     st.divider()
-                    # Delete chat
+                    # Delete conversation
                     if st.button("Delete chat", key=f"delete_btn_{convo['id']}"):
                         try:
                             delete_convo(st.session_state.token, convo["id"])
@@ -124,7 +122,7 @@ def chat_area():
         conversation_id = st.session_state.conversation_id
 
         # Display uploaded documents
-        with st.expander("Documents uploaded", expanded=True):
+        with st.expander("Document uploaded", expanded=True):
             try:
                 documents = list_documents(token, conversation_id)
                 if documents:
@@ -135,20 +133,21 @@ def chat_area():
                         with col2:
                             if st.button("Delete Document", key=f"del_doc_{doc['id']}"):
                                 try:
-                                 delete_document(st.session_state.token, doc['id'])
+                                 delete_document(st.session_state.token, doc['id'], conversation_id)
                                  st.rerun()
                                 except Exception as e:
                                     st.error(str(e))
                                 
                 else:
-                    st.caption("No notes uploaded yet")
+                    st.caption("No document uploaded yet")
                     
             except Exception as e:
                 st.error(str(e))  
 
         # Upload widget
-        uploaded = st.file_uploader("Upload a PDF", type={"PDF"}, key=st.session_state.uploader_key, max_upload_size=2000)  
-        if uploaded and st.button("Upload"):
+        have_document = list_documents(token, conversation_id)
+        uploaded = st.file_uploader("Upload a document to start asking, only one document allowed", type={"PDF"}, key=st.session_state.uploader_key, max_upload_size=2000, accept_multiple_files=False)  
+        if uploaded and st.button("Upload", disabled= bool(have_document)):
             with st.spinner("Uploading..."):
                 try:
                     upload(st.session_state.token, st.session_state.conversation_id, uploaded)
@@ -160,8 +159,10 @@ def chat_area():
                     st.error(str(e))
         st.divider()
 
-        # Main chat area
+        # Main query area
+        have_document = list_documents(token, conversation_id) # A check for only allowing user to ask a query if there is a document uploaded
         try:
+         
          convo_messages = get_conversation(st.session_state.token, st.session_state.conversation_id)
 
          for message in convo_messages['messages']:
@@ -171,7 +172,7 @@ def chat_area():
         except Exception as e:
          st.error(str(e))
 
-        query = st.chat_input("Ask anything...")
+        query = st.chat_input("Ask anything...", disabled= not have_document)
 
         if query:
             with st.chat_message("user"):
@@ -205,14 +206,16 @@ def show_signup():
         new_password = st.text_input("Password", key="register_password", type="password")
 
         if st.button("Create account", use_container_width=True):
-            if not new_email or not new_password or not new_name:
+            if not new_email or not new_password or not new_name :
                 st.error("Please fill in all the fields")
+            elif "@" not in new_email:
+             st.error("Please enter a valid email address")
             else:
-                success, msg = register(new_email, new_name, new_password)
-                if success:
-                    st.success("Go to the login page")
-                else:
-                    st.error(msg)
+             success, msg = register(new_email, new_name, new_password)
+             if success:
+                st.success("Go to the login page")
+             else:
+                st.error(msg)
     # User login tab
     with login_tab:
         login_email = st.text_input("Email", key="login_email")
@@ -221,6 +224,8 @@ def show_signup():
         if st.button("Login", use_container_width=True):
          if not login_email or not login_password:
              st.error("Please fill in all the fields")
+         elif "@" not in login_email:
+             st.error("Please enter a valid email address")   
          else:
             token, msg = login(login_email, login_password)
             if token:

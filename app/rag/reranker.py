@@ -33,12 +33,14 @@ def run_reranker(query, reranker, chunks):
         reverse=True
     )
 
+
+
     final_chunks = []
 
     counter = 0
 
     for item in scored_results:
-        if counter < 3:
+        if counter < int(len(chunks)*0.6):
             final_chunks.append(item[0])
         
         counter += 1

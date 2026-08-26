@@ -11,6 +11,8 @@ import pdfplumber                  # extracting text from PDF files
 from fastapi import UploadFile     # type hint for the uploaded file
 from app.config import UPLOADS_DIR # where to save uploaded PDFs
 import uuid
+from app.models import Messages
+from sqlalchemy import select
 
 
 def sanitize_filename(filename: str):
@@ -120,6 +122,20 @@ def process_pdf(content: bytes, file: UploadFile, usr_id):
         "text": cleaned_text
     }
 
+
+def delete_message(db, conversation_id):
+    '''
+    Delete a conversation chat history when the user delete a document for that conversation
+    '''
+    find_messages = db.scalars(
+        select(Messages)
+        .where(Messages.conversation_id == conversation_id)
+    ).all()
+
+    for message in find_messages:
+        db.delete(message)
+
+    db.commit()
 
 
 
