@@ -1,6 +1,7 @@
 # Environment variables
 .env
 .env.*
+.venv
 
 # Python virtual environments
 venv/
@@ -20,3 +21,4 @@ chroma_db/
 
 #Upload Directory
 upload/
+
