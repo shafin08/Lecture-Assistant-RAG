@@ -28,12 +28,6 @@ def get_db():
     Yields the session to the endpoint.
     Closes the session after the endpoint finishes,
     even if an error occurs.
-
-    Usage in FastAPI:
-        @app.get("/users")
-        def get_users(db: Session = Depends(get_db)):
-            users = db.query(User).all()
-            return users
     """
 
     db = SessionLocal()
@@ -44,8 +38,8 @@ def get_db():
 
 def create_tables():
     """
-    Creates all tables defined by models that inherit from Base.
-    Safe to call multiple times — only creates tables that don't exist yet.
+    Creates all tables for the database defined by models that inherit from Base.
+    Only creates tables that don't exist yet.
     """
     Base.metadata.create_all(bind=engine)
     print("Database tables created")

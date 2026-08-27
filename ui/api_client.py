@@ -1,7 +1,6 @@
 # ============================================================
-# frontend/api_client.py
-# Wraps every backend API call in a clean function.
-# The UI imports these instead of calling requests directly.
+# ui/api_client.py
+# Wraps every backend API call into one clean function.
 # ============================================================
 import requests
 
@@ -48,10 +47,16 @@ def login(email, password):
       token = response.json()["access_token"]
       return token, None
     else:
-      detail = response.json().get("detail", "Login failed")
-      return False, detail
+       response.raise_for_status()
   except requests.exceptions.ConnectionError:
     return False, "Could not connect to the server."   
+  except requests.exceptions.HTTPError:
+     detail = response.json().get("detail", "Login Failed")
+     if isinstance(detail, list):
+        detail = detail[0]["msg"]
+     return False, detail
+  except Exception as e:
+     return False, str(e)
 
 def create_conversation(token): 
      response = requests.post(

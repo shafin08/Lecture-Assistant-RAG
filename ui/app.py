@@ -4,6 +4,8 @@
 # ============================================================
 
 import streamlit as st
+import re
+from st_keyup import st_keyup
 from api_client import (
     register,
     login, 
@@ -45,10 +47,22 @@ if "conversation_id" not in st.session_state:
 if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
 
-
 # ============================================================
 # Helper Functions
 # ============================================================
+
+def password_check(password):
+    '''
+    Check that the user password matches the necessary condition to create a strong password
+    '''
+    return [
+        ("At least 12 characters", len(password) >= 12),
+        ("An uppercase letter", bool(re.search(r"[A-Z]", password))),
+        ("A lowercase letter", bool(re.search(r"[a-z]", password))),
+        ("A number", bool(re.search(r"[0-9]",password))),
+        ("A special character", bool(re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)))
+    ]
+
 
 def sidebar():
     with st.sidebar:
@@ -201,19 +215,34 @@ def show_signup():
 
     # New user registration tab
     with register_tab:
+
         new_name = st.text_input("Name", key="register_name")
         new_email = st.text_input("Email", key="register_email")
-        new_password = st.text_input("Password", key="register_password", type="password")
+        new_password = st_keyup("Password", key="register_password", type="password")
+      
+        password_condition = password_check(new_password)
+        st.caption("Password must contain: ")
+        for label, met in password_condition:
+            if met:
+                st.markdown(f":green[{label}]")
+            else:
+                st.markdown(f":red[{label}]")
+
 
         if st.button("Create account", use_container_width=True):
+            conditions = password_check(new_password)
+            condition_met = all(met for _, met in conditions)
+            
             if not new_email or not new_password or not new_name :
                 st.error("Please fill in all the fields")
             elif "@" not in new_email:
              st.error("Please enter a valid email address")
+            elif not condition_met:
+                st.error("Password requirements are not met")
             else:
              success, msg = register(new_email, new_name, new_password)
              if success:
-                st.success("Go to the login page")
+                st.success("Go to login page to sign in")
              else:
                 st.error(msg)
     # User login tab
@@ -239,6 +268,9 @@ def show_signup():
 
 
 def main_app():
+    '''
+    Shows to the user after a successful login
+    '''
     sidebar()
     chat_area()
 

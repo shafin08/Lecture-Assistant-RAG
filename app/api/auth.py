@@ -1,6 +1,7 @@
 # ============================================================
 # app/api/auth.py
-# API for authentication
+# API Endpoint for authentication
+# Include enpoints for handling user login and registration
 # ============================================================
 
 
@@ -25,16 +26,19 @@ from fastapi.security import OAuth2PasswordRequestForm
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 class RegisterRequest(BaseModel):
+    """Request body for validating user input when registering a new account"""
     email: EmailStr
     username: str
     password: str
 
 class LoginRequest(BaseModel):
+    """Request body for validating user input when logging in to an existing account"""
     email: EmailStr
     password: str
 
 
 class TokenResponse(BaseModel):
+    """Response model that validates the token that is given to a user after a successful login"""
     access_token: str
     token_type: str
 
@@ -45,6 +49,9 @@ class UserResponse(BaseModel):
 
 @router.post("/register")
 async def register(request: RegisterRequest, db: Session = Depends(get_db)):
+    """
+    Check if an account is already registered and create a new account for new user
+    """
     usr_exists = db.query(User).filter(User.email == request.email).first()
 
     if usr_exists:
@@ -64,6 +71,9 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
+    '''
+    Handles the logic for existing user login
+    '''
     check_user = db.scalar(select(User).where(User.email == request.email))
 
     if not check_user:

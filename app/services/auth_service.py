@@ -19,9 +19,13 @@ PWD_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_function_pwd(password):
     """
-    Takes in a plain password
-    Hash the user inputted password
-    return the hash string
+    Takes in a plain password and hash the user inputted password
+
+    Param:
+    password(str): user password
+
+    Returns:
+    a hashed password
     
     """
     hash_pwd = PWD_CONTEXT.hash(password)
@@ -30,9 +34,16 @@ def hash_function_pwd(password):
 
 def verify_pwd(plain_pwd, hash_pwd):
     """
-    Takes in a plain password
-    Hash the password
-    Check if the hash password is in the database
+    Takes in a plain password, then hash the password and compare 
+    the hash passwod with the user recorded hashed password in the database
+    Used for login password verification
+
+    Params:
+    plain_pwd(str): regular password
+    hash_pwd(str): hashed password
+
+    Return:
+    True if the password match and false otherwise
     """
 
     verify = PWD_CONTEXT.verify(plain_pwd, hash_pwd)
@@ -41,8 +52,15 @@ def verify_pwd(plain_pwd, hash_pwd):
 
 def create_token(user_id, email, username):
     """
-    Create the JWT Token for users authentication for all parts of the app
-    Return the JWT Token
+    Create the JWT Token for user authentication for most endpoints throughout the app
+   
+    Param:
+    user_id(int)
+    email(str)
+    username(str)
+
+
+    Return: the JWT Token
     """
     payload = {
         "id": user_id,
@@ -61,7 +79,10 @@ def create_token(user_id, email, username):
 def decode_token(token):
     """
     Decode the JWT Token
-    Return decoded information or None for JWT Error
+    
+    Param: JWT token
+
+    Return: decoded information or None for JWT Error
     """
     try:
         decoded_token = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])

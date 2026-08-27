@@ -1,26 +1,22 @@
 # ============================================================
-# ingestion/embedder.py
-# Loads chunks from data/processed/chunks.pkl
-# Creates embeddings using OpenAI
-# Stores everything in ChromaDB
+# app/rag/embedder.py
+# Create embeddings of user pdf document chunks and store in CHROMA DB  
 # ============================================================
 
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from langchain_openai import OpenAIEmbeddings        # converts text into vectors
-from langchain_chroma import Chroma                   # the vector database
+from langchain_openai import OpenAIEmbeddings        
+from langchain_chroma import Chroma                   
 from app.config import (
-    CHROMA_DB_DIR,      # where ChromaDB is saved on disk
-    EMBEDDING_MODEL,    # which OpenAI embedding model to use
+    CHROMA_DB_DIR,      
+    EMBEDDING_MODEL,    
 )
 
 
 def get_vectordb():
-
     # Set up OpenAI embeddings
-    # This is what converts text into vectors
     embeddings = OpenAIEmbeddings(
         model=EMBEDDING_MODEL
     

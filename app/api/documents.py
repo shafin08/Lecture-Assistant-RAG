@@ -1,3 +1,10 @@
+# ============================================================
+# app/api/documents.py
+# Document endpoint
+# Handles uploading, deleting and listing users documents
+# ============================================================
+
+
 from fastapi import (
     APIRouter,           
     Depends,             
@@ -40,7 +47,9 @@ class UploadResponse(BaseModel):
 @router.post("/upload", response_model=UploadResponse)
 async def upload(http_request: Request, conversation_id: int = Form(), user: User = Depends(get_current_user), db: Session = Depends(get_db), file: UploadFile = File()):
     '''
-    Endpoint for uploading documents
+    Endpoint for handling when a user uploads a pdf document in a chat session
+    Turn the document content to chunk, embed the chunks and store in CHROMA DB
+    Create a new document record in the database
     '''
     vector_db = http_request.app.state.vector_db
 
@@ -78,7 +87,7 @@ async def upload(http_request: Request, conversation_id: int = Form(), user: Use
      
      
      
-     # Create new document in database record
+     # Create new document record in the database
      new_doc = Document(
         user_id = user.id,
         conversation_id = conversation_id,
@@ -92,10 +101,9 @@ async def upload(http_request: Request, conversation_id: int = Form(), user: Use
      db.refresh(new_doc)
 
      # Use try and except in case OpenAI API fails
-     # Chunks the user upload document content
      try:
-      chunks = chunk_documents(processed_pdf["text"], user.id, conversation_id, new_doc.id, new_doc.file_path, new_doc.filename)
-      add_chunks_vectordb(vector_db, chunks) # Embed the document
+      chunks = chunk_documents(processed_pdf["text"], user.id, conversation_id, new_doc.id, new_doc.file_path, new_doc.filename)  # Create chunks of the uploaded document content
+      add_chunks_vectordb(vector_db, chunks) # Embed the document chunks and store in CHROMA DB
      except Exception:
         db.delete(new_doc)
         db.commit()
@@ -131,13 +139,13 @@ async def list_documents(conversation_id: int, user: User = Depends(get_current_
 
    
 
-   return usr_doc # Returns a list of document objects or empty list
+   return usr_doc # Returns a list of document objects or empty list if user has no uploaded document
 
 @router.delete("/{document_id}")
 async def delete_documents(document_id: int, conversation_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
    """
-    Deletes a document owned by the current user.
-    Removes both the file from disk and the database record.
+    Deletes a user document
+    Removes the pdf document from the disk, remove record in the database and delete all of the document chunks in CHROMA DB
     """
 
 
@@ -150,7 +158,7 @@ async def delete_documents(document_id: int, conversation_id: int, http_request:
          detail="User document not found"
       )
    
-
+   # Check if the document belong to the user making the request
    if document.user_id != user.id:
       raise HTTPException(
          status_code=status.HTTP_403_FORBIDDEN,
@@ -158,9 +166,8 @@ async def delete_documents(document_id: int, conversation_id: int, http_request:
       )
 
    # Use try and except in case OpenAI API fails
-   # Delete documents from vector database and clear conversation history
    try:
-    delete_document(user.id, vector_db, document_id)
+    delete_document(user.id, vector_db, document_id) # Delete document chunks in CHROMA DB
     delete_message(db, conversation_id) # Clear conversation history
    except Exception:
       raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not delete document")

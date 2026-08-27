@@ -1,23 +1,25 @@
 # ============================================================
 # app/api/dependencies.py
-# Authentication dependency — protects endpoints
-# get_current_user() extracts the JWT token, verifies it,
-# and returns the logged-in user
+# Authentication dependency — protects endpoints by only allowing authenticated caller to call the endpoint
 # ============================================================
 
 
-from fastapi import Depends, HTTPException, status        # dependency injection and errors
-from fastapi.security import OAuth2PasswordBearer          # extracts token from header
-from sqlalchemy.orm import Session                         # database session type
-from jose import JWTError                                  # JWT error handling
-from app.database import get_db                            # database dependency
-from app.models import User                                # User table model
-from app.services.auth_service import decode_token         # your decode function from file 1
+from fastapi import Depends, HTTPException, status        
+from fastapi.security import OAuth2PasswordBearer         
+from sqlalchemy.orm import Session                         
+from jose import JWTError                                  
+from app.database import get_db                           
+from app.models import User                               
+from app.services.auth_service import decode_token         
 from sqlalchemy import select
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login") # Dependency used for getting the token that is the main authentication mechanism
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    '''
+    Receives a token from the auth/login endpoint and decode the token to check that it's valid.
+    If the token is valid, it will be used by the user for calling all other endpoints that requires authentication
+    '''
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

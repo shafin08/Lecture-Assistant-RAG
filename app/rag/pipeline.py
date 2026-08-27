@@ -1,6 +1,6 @@
 # ============================================================
-# rag/pipeline.py
-# Logic for the main RAG pipeline
+# app/rag/pipeline.py
+# The main rag pipeline
 # ============================================================
 
 import sys
@@ -37,11 +37,17 @@ def build_context(chunks):
     """
     Formats the retrieved chunks into a readable context string
     that gets injected into the system prompt.
+    
+    Param:
+    chunks: user chunks
+
+
+    Return a clean context
     """
 
     formatted_context = ""
 
-    counter = 1
+    counter = 1 
 
     for chunk in chunks:
          usr_id = chunk.metadata.get("user_id", "Unknown")
@@ -58,6 +64,16 @@ def build_context(chunks):
 
 
 def rewrite_query(query, llm_model, chathistory=[]):
+    '''
+    Rewrite the user original query based on the chat history to give added context
+
+    Params:
+    query(str): user query
+    llm_model: Open AI llm model
+    chat_history: all messages in a chat session
+
+    Returns: the rewritten query
+    '''
     if len(chathistory) == 0:
         return query
     
@@ -90,6 +106,18 @@ def rewrite_query(query, llm_model, chathistory=[]):
 
 
 def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]):
+        '''
+        The rag pipeline that does the search by calling the retriever and reranker using the user query to find the most relevant chunks
+        Build the context for the AI model using the return chunks
+
+        Params:
+        query(str): user query
+        vector_db: access to the CHROMA DB
+        reranker: reranker model
+        user_id(int)
+        conversation_id(int)
+        chat_history(list): a list containing all the active chat session messages
+        '''
         llm_model = ChatOpenAI(
             model=LLM_MODEL,
             temperature=0.1,
@@ -146,7 +174,7 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
             print(f"Content: {items.page_content}\n\n")
         '''
     
-        yield from llm_model.stream(messages)
+        yield from llm_model.stream(messages) # Use yield in order to stream the AI response to the frontend
 
 
 
