@@ -1,6 +1,6 @@
 # ============================================================
 # app/models.py
-# Database table definitions for the Financial RAG app
+# Database table definitions
 # Defines: User, Document, Conversation, Message
 # ============================================================
 

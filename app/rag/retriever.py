@@ -1,5 +1,5 @@
 # ============================================================
-# rag/retriever.py
+# app/rag/retriever.py
 # Hybrid search — combines semantic search (ChromaDB)
 # and keyword search (BM25) for better retrieval
 # ============================================================
@@ -16,7 +16,8 @@ from langchain.schema import Document
 
 def compute_k(chunks_length):
     '''
-    Dynamically compute the amount of chunks to return in a search based on the total amount of chunks of an uploaded document
+    Dynamically compute the amount of chunks to return in the vector search 
+    based on the total amount of chunks of the uploaded document
     '''
 
     initial_k = max(5, int(chunks_length * 0.1))
@@ -25,6 +26,17 @@ def compute_k(chunks_length):
 
 
 def get_user_chunks(user_id, vectorstore, conversation_id):
+    '''
+    Fetch all the user chunks in the current chat session in the CHROMA DB 
+
+    Params:
+    user_id(int)
+    vectorstore: access to CHROMA DB
+    conversation_id(int)
+
+    Returns:
+    A list of the chunks
+    '''
 
     # Fetch this conversation's chunks with their text and metadata
     usr_chunks = vectorstore.get(where={"$and":[
@@ -41,6 +53,12 @@ def get_user_chunks(user_id, vectorstore, conversation_id):
     return document
 
 def keyword_search(query, chunks):
+    '''
+    BM25 keyword search
+
+    Return:
+    At most five chunks that ranked the highest from the BM 25 search
+    '''
 
     bm25 = BM25Retriever.from_documents(chunks)
     bm25.k = 5
@@ -54,7 +72,15 @@ def keyword_search(query, chunks):
 def hybrid_search(query,vectorstore, user_id, conversation_id):
     """
     Combines semantic search and BM25 keyword search.
-    Returns a non duplicated list of relevant chunks.
+
+    Params:
+    query(str): user query
+    vectorstore: access to CHROMA DB
+    user_id(int)
+    conversation_id(int)
+
+
+    Returns: a non duplicated list of relevant chunks.
     """
 
 
@@ -80,7 +106,7 @@ def hybrid_search(query,vectorstore, user_id, conversation_id):
 
     combined_search = semantic_search + bm25_search
 
-    seen = set()
+    seen = set() # For preventing duplicated chunks
 
     final_chunks = []
 

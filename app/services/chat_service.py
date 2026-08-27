@@ -1,10 +1,16 @@
+# ============================================================
+# app/services/chat_service.py
+# This file contains the core chat logic
+# ============================================================
+
+
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy.orm import Session                 # database session type
-from app.models import Conversation, Messages, Document  # the table models
-from app.rag.embedder import delete_document_vectordb     # remove chunks on delete
+             
+from app.models import Conversation, Messages, Document 
+from app.rag.embedder import delete_document_vectordb     
 from sqlalchemy import select
 
 
@@ -12,7 +18,8 @@ from sqlalchemy import select
 def create_conversation(db, user_id):
     '''
     Create a new row in the db for a new conversation
-    Returns a Conversation object
+
+    Returns: a Conversation object
     '''
     new_convo = Conversation(user_id = user_id)
     db.add(new_convo)
@@ -22,7 +29,7 @@ def create_conversation(db, user_id):
 
 def get_usr_convo(db, user_id):
     '''
-    Returns every conversation of a user
+    Returns all the chat session a user created
     '''
     find_convo = db.scalars(
         select(Conversation)
@@ -35,7 +42,7 @@ def get_usr_convo(db, user_id):
 
 def get_convo(db, user_id, conversation_id):
     '''
-    Returns a single conversation of a user
+    Find a single chat session of a user
     '''
     find_convo = db.scalar(
         select(Conversation)
@@ -47,7 +54,7 @@ def get_convo(db, user_id, conversation_id):
 
 def get_messages(db, conversation_id):
     '''
-    Return all messages of a conversation
+    Find all the messages of a user chat session
     '''
     find_messages = db.scalars(
             select(Messages)
@@ -59,7 +66,15 @@ def get_messages(db, conversation_id):
 def save_message(db, conversation_id, role, content):
     '''
     Saves a message to the database
-    Return the newly saved Messages object
+
+    Params:
+    db: Databse session
+    conversation_id(int)
+    role(str): user or assistant
+    content(str): the message, could be a user query or the AI response
+
+
+    Return: the newly saved Messages object
     '''
     new_message = Messages(
         conversation_id = conversation_id, 
@@ -89,8 +104,8 @@ def update_title(db, conversation_id, title):
 def delete_conversation(db, vector_db, conversation_id, user_id):
     '''
     Delete conversation, documents and messages attached to the conversation in the database
-    Delete chunks associated with the documents in CHROMA DB
-    Delete all documents in upload associated with the documents
+    Delete chunks associated with the documents of the chat session in CHROMA DB
+    Delete all documents in the upload folders associated with the chat session
     '''
     find_convo = db.scalar(
             select(Conversation)
@@ -124,7 +139,7 @@ def delete_conversation(db, vector_db, conversation_id, user_id):
 
 def generate_title_from_question(question):
     """
-    Simple auto-title — uses the first part of the first question.
+    Simple auto-title from the first AI response
     Trims to ~40 characters and cleans it up.
     """
     title = question.strip()

@@ -1,5 +1,5 @@
 # ============================================================
-# config.py — Centralized project settings
+# app/config.py — Centralized project settings
 # All hardcoded values live here, loaded from .env
 # ============================================================
 
@@ -22,8 +22,6 @@ RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-2-v2"
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 512))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 64))
 
-# --- Retrieval ---
-TOP_K_RERANK = int(os.getenv("TOP_K_RERANK", 5))
 
 # --- DB ---
 DATABASE_URL = os.getenv("DATABASE_URL")

@@ -26,7 +26,7 @@ from config import RERANKER_MODEL, CORS_ORIGIN, validate_config
 
 # ============================================================
 # Lifespan — runs on startup and shutdown
-# Start up the necessary database and models when the server starts
+# Start up the needed database and models when the server starts
 # ============================================================
 
 @asynccontextmanager
@@ -41,8 +41,8 @@ async def lifespan(app:FastAPI):
 
 
 app = FastAPI(
-    title="Lecture RAG API",
-    description="Personal Lecture Assistant",
+    title="Lecture Assistant RAG API",
+    description="A personal lecture assistant that assists students in better understanding their lecture notes",
     version="1.0.0",
     lifespan=lifespan
 )

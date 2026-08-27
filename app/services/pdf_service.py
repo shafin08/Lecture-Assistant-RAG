@@ -6,10 +6,10 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-import re                          # cleaning text with regex patterns
-import pdfplumber                  # extracting text from PDF files
-from fastapi import UploadFile     # type hint for the uploaded file
-from app.config import UPLOADS_DIR # where to save uploaded PDFs
+import re                          
+import pdfplumber                 
+from fastapi import UploadFile     
+from app.config import UPLOADS_DIR 
 import uuid
 from app.models import Messages
 from sqlalchemy import select
@@ -60,7 +60,8 @@ def extract_pdf_text(filepath):
     Extracts all text from a PDF file.
     Loops through every page and combines the text.
 
-    Returns the full text as a single string.
+
+    Returns: the full text as a single string.
     """
      full_text = ""
 
@@ -106,6 +107,17 @@ def clean_text(text):
         
 
 def process_pdf(content: bytes, file: UploadFile, usr_id):
+    '''
+    Combine all the mechanism needed for pdf document processing into one function
+
+    Params:
+    content: the pdf document content
+    file: the user uploaded document
+    usr_id(int)
+
+    Return:
+    the filepath, the filename and the cleaned content of the pdf document
+    '''
     
     #Step 1
     pdf_file = save_pdf_file(content, file, usr_id)
@@ -125,7 +137,7 @@ def process_pdf(content: bytes, file: UploadFile, usr_id):
 
 def delete_message(db, conversation_id):
     '''
-    Delete a conversation chat history when the user delete a document for that conversation
+    Delete a chat session messages when the user delete a document in a chat session
     '''
     find_messages = db.scalars(
         select(Messages)

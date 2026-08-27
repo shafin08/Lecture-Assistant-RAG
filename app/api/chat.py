@@ -28,17 +28,24 @@ router = APIRouter(prefix="/chat", tags=["Chats"])
 # ============================================================
 
 class ChatRequest(BaseModel):
+    '''
+    The caller input when making a query
+    '''
     query: str
     conversation_id: int
 
 
 class ChatResponse(BaseModel):
+    '''
+    What the endpoint returns to the caller when making a query
+    '''
     answer: str
 
 @router.post("", response_model=ChatResponse)
 async def chat(request: ChatRequest, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     '''
-    The main query mechanism
+    The main query mechanism that calls the rag pipeline
+    This endpoint gets called when the user make a query in one of their conversation
     ''' 
     vector_db = http_request.app.state.vector_db
     reranker_model = http_request.app.state.reranker_model
@@ -59,7 +66,7 @@ async def chat(request: ChatRequest, http_request: Request, user: User = Depends
          status_code=status.HTTP_404_NOT_FOUND,
          detail="Conversation not found"
         )
-    convo_messages = get_messages(db, request.conversation_id) # Get all the conversation messages
+    convo_messages = get_messages(db, request.conversation_id) # Get all the conversation existing messages
 
     for message in convo_messages:
         chathistory.append({
@@ -70,6 +77,9 @@ async def chat(request: ChatRequest, http_request: Request, user: User = Depends
    
     save_message(db, request.conversation_id, "user", request.query)
     def generate():
+      '''
+      Call the rag pipeline and output the AI response to the frontend
+      '''
       full_txt = ""
       for chunk in ask_llm(request.query, vector_db, reranker_model, user.id, request.conversation_id, chathistory):
          full_txt += chunk.content

@@ -1,22 +1,22 @@
 # ============================================================
-# ingestion/chunker.py
-# Loads .txt files from data/raw/ and splits them into chunks
-# Saves chunks to data/processed/chunks.pkl
+# qpp/rag/chunker.py
+# Load user uploaded document and chunk the content
 # ============================================================
 
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter  # splits text into chunks
-from langchain.schema import Document                                # the chunk object with metadata
-from app.config import CHUNK_SIZE, CHUNK_OVERLAP                     # chunk settings from .env
+from langchain.text_splitter import RecursiveCharacterTextSplitter  
+from langchain.schema import Document                                
+from app.config import CHUNK_SIZE, CHUNK_OVERLAP                    
 
 
 
 def chunk_documents(text, user_id, conversation_id, document_id, filepath, filename):
    '''
    Chunks the user uploaded pdf document
+   Return list of chunks as langchain document object
    '''
    # Specifications for the chunks
    chunk_splitter = RecursiveCharacterTextSplitter(

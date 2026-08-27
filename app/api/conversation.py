@@ -1,26 +1,37 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request  # routing and errors
-from sqlalchemy.orm import Session                             # database session type
-from pydantic import BaseModel                                 # request/response models
-from datetime import datetime                                  # for response timestamps
+# ============================================================
+# app/api/conversation.py
+# Endpoints handles user interaction within a chat session
+# Handles creating a new chat, listing all of user chat sessions, deleting a chat session, changing a chat title,
+# Displaying all messages of a chat session
+# ============================================================
 
-from app.database import get_db                                # database dependency
-from app.models import User                                    # current user type
-from app.api.dependencies import get_current_user              # auth protection
-from app.services.chat_service import (                        # DB logic from file 1
+
+
+from fastapi import APIRouter, Depends, HTTPException, status, Request  
+from sqlalchemy.orm import Session                            
+from pydantic import BaseModel                                
+from datetime import datetime                                 
+
+from app.database import get_db                               
+from app.models import User                                   
+from app.api.dependencies import get_current_user            
+from app.services.chat_service import (                        
     create_conversation,
     get_usr_convo,
     get_convo,
     get_messages,
-    save_message,
     update_title,
     delete_conversation
 )
-from sqlalchemy import select
+
 
 router = APIRouter(prefix="/conversation", tags={"Conversation"})
 
 
 class ConversationResponse(BaseModel):
+    '''
+    Response model for a single chat session
+    '''
     id: int
     title: str
     created_at: datetime
@@ -70,7 +81,7 @@ async def new_conversation(user: User = Depends(get_current_user), db: Session =
 @router.get("",response_model=list[ConversationResponse])
 async def list_conversation(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     '''
-    For the app sidebar that shows the user chats
+    For the app sidebar that lists all of the user created chat sessions
     '''
     return get_usr_convo(db, user.id)
 
@@ -123,7 +134,7 @@ async def change_title(title: RenameRequest, conversation_id: int, user: User = 
 @router.delete("/{conversation_id}")
 def delete_convo(conversation_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     '''
-    Delete a chat session and all documents attached to it
+    Delete a chat session along with the document attached to it and the messages in that chat session
     '''
     vector_db = http_request.app.state.vector_db
     delete_convo = delete_conversation(db, vector_db,  conversation_id, user.id)
