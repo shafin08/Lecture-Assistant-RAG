@@ -10,6 +10,7 @@
   - [Setup](#setup)
 - [Usage](#usage)
 - [Design Notes](#design-notes)
+- [Future Improvements](#future-improvements)
 - [Contact](#contact)
 
 
@@ -24,6 +25,10 @@
 
 ## Tech Stack
 
+*   **Frontend:** React, TailwindCSS
+*   **Backend:** Node.js, Express
+*   **Database:** PostgreSQL
+
 ## Demo
 
 ## Getting Started
@@ -36,7 +41,11 @@
 
 ## Design Notes
 
+## Future Improvements
+
 ## Contact
+Shafin Ahmed - shafinahmed076@gmail.com
+Project Link: 
 
 
 
