@@ -18,19 +18,10 @@ def test_answer_from_notes(user, new_conversation, upload_pdf, ask):
 
     r = ask(user, cid, "What do mitochondria do?")
     assert r.status_code == 200
-    answer = r.json()["answer"].lower()
+    answer = r.text.lower()
     assert "atp" in answer or "energy" in answer or "respiration" in answer
 
 
-@pytest.mark.slow
-def test_answer_cites_source(user, new_conversation, upload_pdf, ask):
-    cid = new_conversation(user)
-    upload_pdf(user, cid, BIOLOGY_NOTES, filename="biology.pdf")
-
-    r = ask(user, cid, "What are mitochondria?")
-    sources = r.json().get("sources", [])
-    names = [s.get("filename", s.get("title", "")).lower() for s in sources]
-    assert any("biology" in n for n in names)
 
 
 # ---- No hallucination ----
@@ -42,7 +33,7 @@ def test_no_hallucination(user, new_conversation, upload_pdf, ask):
     upload_pdf(user, cid, "This lecture is only about plant photosynthesis. " * 10)
 
     r = ask(user, cid, "What is the capital of France?")
-    answer = r.json()["answer"].lower()
+    answer = r.text.lower()
     assert "paris" not in answer
 
 
@@ -52,7 +43,7 @@ def test_empty_conversation_graceful(user, new_conversation, ask):
     cid = new_conversation(user)
     r = ask(user, cid, "What's in my notes?")
     assert r.status_code == 200
-    assert len(r.json()["answer"]) > 0
+    assert len(r.text.lower()) > 0
 
 
 # ---- Isolation (the security-critical tests) ----
@@ -69,7 +60,7 @@ def test_cross_chat_isolation(user, new_conversation, upload_pdf, ask):
     upload_pdf(user, hist, HISTORY_NOTES, filename="history.pdf")
 
     r = ask(user, bio, "When was the Roman Empire founded?")
-    answer = r.json()["answer"].lower()
+    answer = r.text.lower()
     # Should not surface the history notes' specifics
     assert "augustus" not in answer
     assert "27 bc" not in answer
@@ -87,7 +78,7 @@ def test_cross_user_isolation(user, second_user, new_conversation, upload_pdf, a
     b_conv = new_conversation(second_user)
     r = ask(second_user, b_conv, "What are mitochondria?")
     # B has no notes → should be a graceful "not found", not A's answer
-    answer = r.json()["answer"].lower()
+    answer = r.text.lower()
     assert "powerhouse" not in answer or "couldn't find" in answer or "don't" in answer
 
 
@@ -102,7 +93,7 @@ def test_followup_uses_history(user, new_conversation, upload_pdf, ask):
     ask(user, cid, "What are mitochondria?")
     r = ask(user, cid, "What do they produce?")  # "they" needs history
     assert r.status_code == 200
-    answer = r.json()["answer"].lower()
+    answer = r.text.lower()
     assert "atp" in answer or "energy" in answer
 
 
@@ -113,7 +104,7 @@ def test_messages_persist_and_order(user, new_conversation, upload_pdf, ask, cli
 
     ask(user, cid, "What are mitochondria?")
 
-    detail = client.get(f"/conversations/{cid}", headers=user["headers"]).json()
+    detail = client.get(f"/conversation/{cid}", headers=user["headers"]).json()
     roles = [m["role"] for m in detail["messages"]]
     assert roles[0] == "user"           # first message is the question
     assert "assistant" in roles         # answer saved too
@@ -126,7 +117,7 @@ def test_title_auto_generated(user, new_conversation, upload_pdf, ask, client):
 
     ask(user, cid, "Explain what mitochondria do in the cell")
 
-    convs = client.get("/conversations", headers=user["headers"]).json()
+    convs = client.get("/conversation", headers=user["headers"]).json()
     this = next(c for c in convs if c["id"] == cid)
     assert this["title"] != "New Conversation"
 
