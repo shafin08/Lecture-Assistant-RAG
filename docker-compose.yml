@@ -1,17 +1,17 @@
 # ============================================================
 # docker-compose.yml
-# Runs PostgreSQL database for the Financial RAG app
+# Runs PostgreSQL database for the app
 # ============================================================
 
 services:
   db:
     image: postgres:16          # uses official PostgreSQL 16 image
-    container_name: financial_rag_db
+    container_name: lecture_assistant_rag_db
     restart: always             # auto-restart if it crashes
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: finance
-      POSTGRES_DB: financial_rag
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"             # maps container port to your machine
     volumes:

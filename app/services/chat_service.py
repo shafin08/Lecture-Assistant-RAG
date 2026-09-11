@@ -125,15 +125,11 @@ def delete_conversation(db, vector_db, conversation_id, user_id):
             db.delete(find_convo)
             db.commit()
             return "Successfully delete conversation(empty documents)"
-        else: 
-         # Delete all document in the upload folder
-         for document in find_document:
-              if os.path.exists(document.file_path):
-                   os.remove(document.file_path)
-         delete_document_vectordb(user_id, vector_db, conversation_id) # Delete all the document chunks in CHROMA DB
-         db.delete(find_convo)
-         db.commit()
-         return "Successfully delete conversation"
+        
+        delete_document_vectordb(user_id, vector_db, conversation_id) # Delete all the document chunks in CHROMA DB
+        db.delete(find_convo)
+        db.commit()
+        return "Successfully delete conversation"
         
         
 

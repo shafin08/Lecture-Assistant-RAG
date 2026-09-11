@@ -18,7 +18,7 @@ from fastapi import (
                                     
 )
 from sqlalchemy.orm import Session          
-import os                                    
+                                  
 
 from app.database import get_db            
 from app.models import User, Document, Conversation     
@@ -79,11 +79,8 @@ async def upload(http_request: Request, conversation_id: int = Form(), user: Use
      content = await file.read()
      processed_pdf = process_pdf(content, file, user.id)
 
-     if not processed_pdf["text"]: # if the pdf is empty then delete pdf file from disk and fails to process uploaded document
-         
-         if os.path.exists(processed_pdf["filepath"]):
-             os.remove(processed_pdf["filepath"])
-         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PDF file could be empty")
+     if not processed_pdf["text"]: # Check for invalid PDF file
+         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PDF file could be empty or PDF is a scanned image")
      
      
      
@@ -92,7 +89,6 @@ async def upload(http_request: Request, conversation_id: int = Form(), user: Use
         user_id = user.id,
         conversation_id = conversation_id,
         filename = processed_pdf["filename"],
-        file_path =  processed_pdf["filepath"],
         content= processed_pdf["text"]
 
      )
@@ -102,13 +98,11 @@ async def upload(http_request: Request, conversation_id: int = Form(), user: Use
 
      # Use try and except in case OpenAI API fails
      try:
-      chunks = chunk_documents(processed_pdf["text"], user.id, conversation_id, new_doc.id, new_doc.file_path, new_doc.filename)  # Create chunks of the uploaded document content
+      chunks = chunk_documents(processed_pdf["text"], user.id, conversation_id, new_doc.id, new_doc.filename)  # Create chunks of the uploaded document content
       add_chunks_vectordb(vector_db, chunks) # Embed the document chunks and store in CHROMA DB
      except Exception:
         db.delete(new_doc)
         db.commit()
-        if os.path.exists(processed_pdf["filepath"]):
-           os.remove(processed_pdf["filepath"])
         raise HTTPException(status_code=500, detail="Failed to embed documents")
 
 
@@ -172,8 +166,6 @@ async def delete_documents(document_id: int, conversation_id: int, http_request:
    except Exception:
       raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not delete document")
    
-   if os.path.exists(document.file_path):
-      os.remove(document.file_path)
 
    db.delete(document)
    db.commit()

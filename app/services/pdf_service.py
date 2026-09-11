@@ -6,11 +6,10 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+import io
 import re                          
 import pdfplumber                 
 from fastapi import UploadFile     
-from app.config import UPLOADS_DIR 
-import uuid
 from app.models import Messages
 from sqlalchemy import select
 
@@ -28,34 +27,7 @@ def sanitize_filename(filename: str):
 
     return filename
 
-
-def save_pdf_file(content: bytes, file: UploadFile, usr_id):
-    """
-    Saves an uploaded PDF to disk in the user's folder.
-
-    Files are organized by user ID:
-        uploads/1/report.pdf
-        uploads/2/budget.pdf
-
-    Returns the file path where it was saved.
-    """
-    usr_dir = os.path.join(UPLOADS_DIR, str(usr_id))
-    os.makedirs(usr_dir, exist_ok=True)
-    clean_filename = sanitize_filename(file.filename)
-
-    unique_filename = f"{uuid.uuid4().hex}_{clean_filename}" # Add uuid infront incase user upload file with the same name
-
-
-    filepath = os.path.join(usr_dir, unique_filename)
-    with open(filepath, "wb") as f:
-        f.write(content)
-    
-    # Reset the file pointer
-    file.file.seek(0)
-
-    return filepath
-
-def extract_pdf_text(filepath):
+def extract_pdf_text(content: bytes):
      """
     Extracts all text from a PDF file.
     Loops through every page and combines the text.
@@ -65,7 +37,7 @@ def extract_pdf_text(filepath):
     """
      full_text = ""
 
-     with pdfplumber.open(filepath) as pdf:
+     with pdfplumber.open(io.BytesIO(content)) as pdf:
          for page in pdf.pages:
              page_text = page.extract_text()
              if page_text:
@@ -120,16 +92,12 @@ def process_pdf(content: bytes, file: UploadFile, usr_id):
     '''
     
     #Step 1
-    pdf_file = save_pdf_file(content, file, usr_id)
-    
-    #Step 2
-    raw_text = extract_pdf_text(pdf_file)
+    raw_text = extract_pdf_text(content)
 
-    #Step 3
+    #Step 2
     cleaned_text = clean_text(raw_text)
 
     return {
-        "filepath": pdf_file,
         "filename": sanitize_filename(file.filename),
         "text": cleaned_text
     }
