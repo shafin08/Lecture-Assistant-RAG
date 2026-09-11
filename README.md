@@ -25,9 +25,14 @@
 
 ## Tech Stack
 
-*   **Frontend:** React, TailwindCSS
-*   **Backend:** Node.js, Express
+*   **Frontend:** Streamlit
+*   **Backend:** FastAPI
 *   **Database:** PostgreSQL
+*   **Vector Store:** ChromaDB
+*   **Embeddings & LLM:** OpenAI
+
+
+
 
 ## Demo
 
