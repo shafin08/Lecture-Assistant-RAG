@@ -76,13 +76,13 @@ app.include_router(conversation.router)
 @app.get("/health")
 def get_health():
     return {"status": "ok",
-            "message": "Chatbot RAG API is running"
+            "message": "RAG API is running"
             
     }
 
 @app.get("/")
 def root():
-    return {"message": "Chatbot API is running!"}
+    return {"message": "API is running!"}
     
 
 

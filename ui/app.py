@@ -165,7 +165,7 @@ def chat_area():
             with st.spinner("Uploading..."):
                 try:
                     upload(st.session_state.token, st.session_state.conversation_id, uploaded)
-                    st.toast("Document uploaded!", icon="✅", duration='long')
+                    st.toast("Document uploaded!", duration='long')
                     st.session_state.uploader_key += 1 # Resets the file uploader
                     st.rerun()
 

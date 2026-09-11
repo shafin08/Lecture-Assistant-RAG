@@ -45,7 +45,6 @@ class Document(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     conversation_id = Column(Integer, ForeignKey("conversation.id"), nullable=False)
     filename = Column(String(255), nullable=False)
-    file_path = Column(String(500), nullable=False)
     uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     content = Column(Text)
 
