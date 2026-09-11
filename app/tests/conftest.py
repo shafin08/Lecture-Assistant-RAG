@@ -130,7 +130,7 @@ def ask(client):
         return client.post(
             "/chat",
             headers=user["headers"],
-            json={"question": question, "conversation_id": conversation_id},
+            json={"query": question, "conversation_id": conversation_id},
         )
     return _ask
 

@@ -41,7 +41,7 @@ def test_reject_non_pdf(user, new_conversation, client):
         files={"file": ("notes.txt", b"plain text", "text/plain")},
         data={"conversation_id": cid},
     )
-    assert r.status_code == 400
+    assert r.status_code == 415
 
 
 @pytest.mark.slow
@@ -53,12 +53,12 @@ def test_documents_scoped_to_conversation(user, new_conversation, upload_pdf, cl
     upload_pdf(user, conv_a, BIOLOGY_NOTES, filename="a.pdf")
     upload_pdf(user, conv_b, BIOLOGY_NOTES, filename="b.pdf")
 
-    docs_a = client.get("/documents", headers=user["headers"],
+    docs_a = client.get("/documents/getdocs", headers=user["headers"],
                         params={"conversation_id": conv_a}).json()
     names_a = [d["filename"] for d in docs_a]
     assert "a.pdf" in names_a and "b.pdf" not in names_a
 
-    docs_b = client.get("/documents", headers=user["headers"],
+    docs_b = client.get("/documents/getdocs", headers=user["headers"],
                         params={"conversation_id": conv_b}).json()
     names_b = [d["filename"] for d in docs_b]
     assert "b.pdf" in names_b and "a.pdf" not in names_b
@@ -70,9 +70,9 @@ def test_delete_document(user, new_conversation, upload_pdf, client):
     doc_id = upload_pdf(user, cid, BIOLOGY_NOTES)["document"]["id"]
 
     assert client.delete(f"/documents/{doc_id}",
-                         headers=user["headers"]).status_code == 200
+                         headers=user["headers"], params={"conversation_id":cid, "document_id":doc_id}).status_code == 200
 
-    docs = client.get("/documents", headers=user["headers"],
+    docs = client.get("/documents/getdocs", headers=user["headers"],
                       params={"conversation_id": cid}).json()
     assert all(d["id"] != doc_id for d in docs)
 
