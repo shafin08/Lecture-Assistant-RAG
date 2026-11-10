@@ -130,8 +130,8 @@ def delete_conversation(db, vector_db, conversation_id, user_id):
         db.delete(find_convo)
         db.commit()
         return "Successfully delete conversation"
-        
-        
+
+
 
 def generate_title_from_question(question):
     """

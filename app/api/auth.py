@@ -8,13 +8,13 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from fastapi import APIRouter, Depends, HTTPException, status  
-from pydantic import BaseModel, EmailStr                       
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from sqlalchemy.orm import Session                              
-from app.database import get_db                                
-from app.models import User                                     
-from app.services.auth_service import (                         
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.models import User
+from app.services.auth_service import (
     hash_function_pwd,
     verify_pwd,
     create_token

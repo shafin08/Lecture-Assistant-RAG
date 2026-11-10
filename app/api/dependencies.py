@@ -38,7 +38,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if usr_id is None:
        raise credentials_exception
     
-    
     query_usr = db.scalar(select(User).where(User.id == usr_id))
 
     if not query_usr:

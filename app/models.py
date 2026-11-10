@@ -37,8 +37,6 @@ class User(Base):
     )
 
 
-
-
 class Document(Base):
     __tablename__ = "documents"
     id = Column(Integer, primary_key=True, index=True)
@@ -54,6 +52,7 @@ class Document(Base):
         back_populates="conversation_doc"
 
     )
+
 
 class Conversation(Base):
     __tablename__ = "conversation"
@@ -84,6 +83,3 @@ class Messages(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     owner_m = relationship("Conversation", back_populates="messages") 
-
- 
-

@@ -6,7 +6,6 @@
 # ============================================================
 
 
-
 from fastapi import APIRouter, Depends, HTTPException, status, Request  
 from sqlalchemy.orm import Session                            
 from pydantic import BaseModel                                
@@ -146,8 +145,3 @@ def delete_convo(conversation_id: int, http_request: Request, user: User = Depen
     return {
         "message": delete_convo
     }
-
-
-    
-
-    

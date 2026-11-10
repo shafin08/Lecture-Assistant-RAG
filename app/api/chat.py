@@ -92,8 +92,3 @@ async def chat(request: ChatRequest, http_request: Request, user: User = Depends
     
 
     return StreamingResponse(generate(), media_type="text/plain")
-    
-
-    
-
-

@@ -89,18 +89,3 @@ def decode_token(token):
         return decoded_token
     except JWTError:
         return None
-    
-
-    
-    
-    
-     
-
-
-
-
-
-
-
-
-

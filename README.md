@@ -14,14 +14,17 @@
 
 
 
-
 ## About the Project
+Lecture Assistant RAG is a full-stack study tool that lets students upload their own lecture notes and ask questions answered directly from that material.
+
+As a university student, lecture notes can easily pile up across courses and before exams there is never enough time to go through all of them. Since Generic AI chatbots can hallucinate, I decided to build a retrival-augmented generation system that grounds each answer with the user's uploaded lecture notes to make explanations accurate to the actual course content.
+
 
 ## Features
 
 * **Upload your own notes:** each chats session belong to a single lecture notes.
-* **No hallucination:** if what you're looking isn't in the notes, it will say so and doesn't create false information.
-* **Good explanation of any concept:** The chatbot assists in making sure that you will understand everything in the lecture notes.
+* **No hallucination:** if what you're looking for isn't in the notes, it will say so and doesn't create false information.
+* **Good explanation of any concept:** The chatbot assists in making sure you will get a good understanding of the lecture notes.
 * **Per chat isolation:** Each chat session will only search through the document uploaded in that chat session.
 * **Per user isolation:** each user can see only their own chat session.
 * **Persistent chat history:** every messages with the chatbot is saved.
@@ -37,8 +40,8 @@
 *   **Database:** PostgreSQL
 *   **Vector Database:** ChromaDB
 *   **Embeddings & LLM:** OpenAI
-*   **Authentication:** JWT + Oauth
-*   **Retrieval:** Hybrid Search(vector search(semantic) + keyword search(BM25) )
+*   **Authentication:** JWT
+*   **Retrieval:** Hybrid Search( vector search(semantic) + keyword search(BM25) )
 *   **Reranker:** Hugging Face CrossEncoder(ms-marco-MiniLM-L-2-v2)
 
 
@@ -58,22 +61,11 @@
 * Deploy to cloud platform and get a live URL
 * Background processing for large PDF file
 * Persistent login via cookies
-* More creative frontend UI
+* More creative UI
 * Add caching, background task processing and rate limiting for scaling the app
 
 ## Contact
-Shafin Ahmed - shafinahmed076@gmail.com
-Project Link: https://github.com/shafin08/Lecture-Assistant-RAG.git
-
-
-
-
-
-
-
-
-
-
-
+* Shafin Ahmed - shafinahmed076@gmail.com
+* Project Link: https://github.com/shafin08/Lecture-Assistant-RAG.git
 
 

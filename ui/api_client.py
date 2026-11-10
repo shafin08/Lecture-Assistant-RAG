@@ -83,7 +83,6 @@ def list_conversation(token):
     raise Exception(detail)
 
 
-
 def get_conversation(token, conversation_id):
    try:
     response = requests.get(
@@ -128,7 +127,7 @@ def delete_convo(token, conversation_id):
 def upload(token, conversation_id, file):
   try:
     response = requests.post(
-      f"{API_URL}/documents/upload",
+      f"{API_URL}/documents",
       headers=auth_headers(token),
       # Streamlit's uploaded file has .name and .getvalue()
       files={"file": (file.name, file.getvalue(), "application/pdf")},
@@ -146,7 +145,7 @@ def upload(token, conversation_id, file):
 def list_documents(token, conversation_id):
   try:
       response = requests.get(
-        f"{API_URL}/documents/getdocs",
+        f"{API_URL}/documents",
         headers=auth_headers(token),
         params={"conversation_id":conversation_id},
         timeout=10
@@ -170,7 +169,7 @@ def delete_document(token, document_id, conversation_id):
           timeout=10
      
         )
-    
+
     response.raise_for_status()
     return response.json()
   except requests.exceptions.HTTPError:
@@ -201,11 +200,3 @@ def send_message(token, conversation_id, query):
    except requests.exceptions.HTTPError:
            detail = response.json().get("detail")
            raise Exception(detail)
-   
-  
-
-      
-   
-   
-  
- 

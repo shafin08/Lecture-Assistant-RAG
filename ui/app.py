@@ -168,7 +168,6 @@ def chat_area():
                     st.toast("Document uploaded!", duration='long')
                     st.session_state.uploader_key += 1 # Resets the file uploader
                     st.rerun()
-
                 except Exception as e:
                     st.error(str(e))
         st.divider()

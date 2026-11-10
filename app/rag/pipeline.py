@@ -17,13 +17,14 @@ from config import LLM_MODEL
 # System prompt — tells the LLM exactly how to behave
 SYSTEM_PROMPT = """
 
-You are a study assistant helping student understand their study notes. Answer the student's question using the
-context provided below as your primary source. You may make reasonable inferences.
+You are a study assistant helping student understand their lecture notes. Answer the student's question using the
+context provided below as your primary source. You may make reasonable inferences and use outside resources ONLY
+for enhancing the explanation of what is already in the provided context.
 
 Rules:
 1. Use information from the provided context as the primary source
 2. If the answer isn't in the context, say "I couldn't find that in 
-   your uploaded notes" — do not use outside knowledge
+   your uploaded notes" 
 3. Explain concepts clearly, like a helpful tutor
 4. If the student asks for clarification, break it down simply
 5. Don't cite the source
@@ -136,8 +137,7 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
         if not search_results:
             yield AIMessageChunk(content="I couldn't find anything about that in your uploaded notes.")
             return
-    
-
+        
         rerank_results = run_reranker(query, reranker, search_results) 
         
         llm_context = build_context(rerank_results)
@@ -149,7 +149,6 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
             print(f"Title: {title}")
             print(f"Content: {chunk.page_content}\n\n")
         '''
-            
 
         messages = [
             SystemMessage(content=SYSTEM_PROMPT.format(context=llm_context))
@@ -180,7 +179,7 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
 
 '''
 if __name__ == "__main__":
-    print("🚀 Testing RAG pipeline...")
+    print("Testing RAG pipeline...")
     print("Loading components — first run may take a few minutes...\n")
 
     # Load components once
@@ -196,7 +195,7 @@ if __name__ == "__main__":
     chat_history = []
 
     for question in test_questions:
-        print(f"\n❓ Question: {question}")
+        print(f"\n Question: {question}")
         print("-" * 50)
 
         result = ask_llm(
@@ -204,8 +203,8 @@ if __name__ == "__main__":
             chathistory=chat_history,
         )
 
-        print(f"💬 Answer: {result['answer']}")
-        print(f"📚 Sources: {[s['title'] for s in result['sources']]}")
+        print(f" Answer: {result['answer']}")
+        print(f" Sources: {[s['title'] for s in result['sources']]}")
       
 
         # Add to chat history for multi-turn conversation

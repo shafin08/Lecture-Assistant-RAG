@@ -19,5 +19,5 @@ chroma_db/
 #DS store
 .DS_Store
 
-
+.vscode/
 
