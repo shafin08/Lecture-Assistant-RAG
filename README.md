@@ -57,13 +57,6 @@ As a university student, lecture notes can easily pile up across courses and bef
 * a
 ## Design Notes
 
-## Future Improvements
-* Deploy to cloud platform and get a live URL
-* Background processing for large PDF file
-* Persistent login via cookies
-* More creative UI
-* Add caching, background task processing and rate limiting for scaling the app
-
 ## Contact
 * Shafin Ahmed - shafinahmed076@gmail.com
 * Project Link: https://github.com/shafin08/Lecture-Assistant-RAG.git
