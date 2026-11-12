@@ -1,5 +1,6 @@
 # API
 fastapi==0.136.3
+starlette==1.2.1              # pinned: streamlit 1.58 breaks on starlette 1.10 (ASGI http.response.start error)
 uvicorn==0.48.0
 python-multipart==0.0.32      # needed for Form() / UploadFile
 email-validator==2.3.0        # needed for pydantic EmailStr

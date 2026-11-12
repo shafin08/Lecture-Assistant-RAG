@@ -20,10 +20,6 @@ from config import RERANKER_MODEL, CORS_ORIGIN, validate_config
 
 
 
-
-
-
-
 # ============================================================
 # Lifespan — runs on startup and shutdown
 # Start up the needed database and models when the server starts
