@@ -15,6 +15,8 @@ import io
 import uuid
 import pytest
 from fastapi.testclient import TestClient
+import os
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
 
 # ---- Adjust to your layout if different ----
 from app.api.main import app

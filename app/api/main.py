@@ -3,9 +3,6 @@
 # Main FastAPI app — includes all routers
 # ============================================================
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -16,7 +13,7 @@ from app.database import create_tables
 from app.api import auth, documents, chat, conversation 
 from app.rag.embedder import get_vectordb
 from sentence_transformers import CrossEncoder
-from config import RERANKER_MODEL, CORS_ORIGIN
+from app.config import RERANKER_MODEL, CORS_ORIGIN
 
 
 

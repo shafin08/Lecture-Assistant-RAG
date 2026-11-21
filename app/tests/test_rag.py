@@ -2,11 +2,10 @@
 # tests/test_rag.py
 # End-to-end RAG behavior THROUGH THE API:
 # retrieval quality, isolation, no-hallucination, history.
-# Runs the full pipeline → marked slow (needs OPENAI_API_KEY).
 # ============================================================
 
 import pytest
-from tests.conftest import BIOLOGY_NOTES, HISTORY_NOTES
+from app.tests.conftest import BIOLOGY_NOTES, HISTORY_NOTES
 
 
 # ---- Retrieval quality ----

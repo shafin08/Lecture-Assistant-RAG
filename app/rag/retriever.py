@@ -7,9 +7,6 @@
 
 import warnings
 warnings.filterwarnings("ignore")
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from langchain_community.retrievers import BM25Retriever         
 from langchain.schema import Document                            
@@ -117,16 +114,3 @@ def hybrid_search(query,vectorstore, user_id, conversation_id):
         else:
             continue
     return final_chunks
-
-
-
-
-
-
-
-
-
-
-
-
-    

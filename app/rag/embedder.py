@@ -3,9 +3,6 @@
 # Create embeddings of user pdf document chunks and store in CHROMA DB  
 # ============================================================
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from langchain_openai import OpenAIEmbeddings        
 from langchain_chroma import Chroma                   

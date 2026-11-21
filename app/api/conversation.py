@@ -8,7 +8,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request  
 from sqlalchemy.orm import Session                            
-from pydantic import BaseModel                                
+from pydantic import BaseModel, ConfigDict                                
 from datetime import datetime                                 
 
 from app.database import get_db                               
@@ -35,8 +35,7 @@ class ConversationResponse(BaseModel):
     title: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True   # lets Pydantic read from the ORM object
+    model_config = ConfigDict(from_attributes=True)   # lets Pydantic read from the ORM object
 
 class MessageResponse(BaseModel):
     """Shape of a single message when loading a conversation."""
@@ -46,8 +45,7 @@ class MessageResponse(BaseModel):
     content: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ConversationDetailResponse(BaseModel):
@@ -57,8 +55,7 @@ class ConversationDetailResponse(BaseModel):
     created_at: datetime
     messages: list[MessageResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============================================================

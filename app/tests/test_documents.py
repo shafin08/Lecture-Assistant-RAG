@@ -5,7 +5,7 @@
 # ============================================================
 
 import pytest
-from tests.conftest import BIOLOGY_NOTES
+from app.tests.conftest import BIOLOGY_NOTES
 
 
 @pytest.mark.slow
@@ -77,7 +77,7 @@ def test_delete_document(user, new_conversation, upload_pdf, client):
 def test_cannot_upload_to_others_conversation(user, second_user,
                                               new_conversation, client):
     cid = new_conversation(user)
-    from tests.conftest import make_pdf
+    from app.tests.conftest import make_pdf
     r = client.post(
         "/documents",
         headers=second_user["headers"],

@@ -8,7 +8,7 @@
 # ============================================================
 
 import uuid
-from tests.conftest import TEST_PASSWORD
+from app.tests.conftest import TEST_PASSWORD
 
 
 def _email():

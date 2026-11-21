@@ -74,7 +74,6 @@ async def chat(request: ChatRequest, http_request: Request, user: User = Depends
             "content": message.content
         })
 
-   
     save_message(db, request.conversation_id, "user", request.query)
     def generate():
       '''
@@ -89,6 +88,5 @@ async def chat(request: ChatRequest, http_request: Request, user: User = Depends
         title = generate_title_from_question(full_txt)
         update_title(db, request.conversation_id, title)
       
-    
 
     return StreamingResponse(generate(), media_type="text/plain")

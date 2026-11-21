@@ -26,7 +26,7 @@ from app.api.dependencies import get_current_user
 from app.services.pdf_service import process_pdf, delete_message   
 from app.rag.chunker import chunk_documents
 from app.rag.embedder import add_chunks_vectordb, delete_document
-from pydantic import BaseModel               
+from pydantic import BaseModel, ConfigDict               
 from datetime import datetime                
 from sqlalchemy import select
 
@@ -37,8 +37,7 @@ class DocumentResponse(BaseModel):
     filename: str
     uploaded_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UploadResponse(BaseModel):
     message:str
@@ -81,9 +80,8 @@ async def upload(http_request: Request, conversation_id: int = Form(), user: Use
 
      if not processed_pdf["text"]: # Check for invalid PDF file
          raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PDF file could be empty or PDF is a scanned image")
-     
-     
-     
+
+
      # Create new document record in the database
      new_doc = Document(
         user_id = user.id,

@@ -3,16 +3,13 @@
 # The main rag pipeline
 # ============================================================
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, AIMessageChunk
 from app.rag.retriever import hybrid_search
 from app.rag.reranker import run_reranker
-from config import LLM_MODEL
+from app.config import LLM_MODEL
 
 # System prompt — tells the LLM exactly how to behave
 SYSTEM_PROMPT = """

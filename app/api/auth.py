@@ -4,10 +4,6 @@
 # Include enpoints for handling user login and registration
 # ============================================================
 
-
-import sys, os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from datetime import datetime

@@ -3,8 +3,7 @@
 # PDF processing — saving uploads, extracting text, cleaning
 # ============================================================
 
-import sys, os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+import os
 
 import io
 import re                          
