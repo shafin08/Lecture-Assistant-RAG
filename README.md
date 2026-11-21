@@ -24,11 +24,11 @@ As a university student, lecture notes can easily pile up across courses and bef
 
 * **Upload your own notes:** each chats session belong to a single lecture notes.
 * **No hallucination:** if what you're looking for isn't in the notes, it will say so and doesn't create false information.
-* **Good explanation of any concept:** The chatbot assists in making sure you will get a good understanding of the lecture notes.
+* **Good explanation of any concept:** The chatbot provide explanation that makes sure you get a good understanding of the lecture notes.
 * **Per chat isolation:** Each chat session will only search through the document uploaded in that chat session.
 * **Per user isolation:** each user can see only their own chat session.
 * **Persistent chat history:** every messages with the chatbot is saved.
-* **Streaming Responses:** AI messages are typed out live.
+* **Streaming Responses:** AI responses are typed out live.
 * **Secure authentication:** Each login gets a JWT token, every endpoint requires a token, password hashing
 
 
@@ -54,7 +54,7 @@ As a university student, lecture notes can easily pile up across courses and bef
 ### Setup
 
 ## Usage
-* a
+
 ## Design Notes
 
 ## Contact

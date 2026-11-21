@@ -114,7 +114,7 @@ def upload_pdf(client):
     def _upload(user, conversation_id, text, filename="notes.pdf"):
         pdf = make_pdf(text)
         r = client.post(
-            "/documents/upload",
+            "/documents",
             headers=user["headers"],
             files={"file": (filename, pdf, "application/pdf")},
             data={"conversation_id": conversation_id},

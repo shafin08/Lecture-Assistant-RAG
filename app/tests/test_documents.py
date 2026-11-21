@@ -1,11 +1,7 @@
 # ============================================================
 # tests/test_documents.py
 # Upload, per-conversation scoping, deletion, validation.
-# Uploads trigger real chunking + embedding → marked slow.
-#
-# NOTE: PDFs are NOT saved to disk in this app — text is
-# extracted on upload and only the chunks land in ChromaDB.
-# So these tests check the DB record + the chunks, never a file.
+# Uploads trigger real chunking and embedding
 # ============================================================
 
 import pytest
@@ -36,7 +32,7 @@ def test_upload_response_has_no_file_path(user, new_conversation, upload_pdf):
 def test_reject_non_pdf(user, new_conversation, client):
     cid = new_conversation(user)
     r = client.post(
-        "/documents/upload",
+        "/documents",
         headers=user["headers"],
         files={"file": ("notes.txt", b"plain text", "text/plain")},
         data={"conversation_id": cid},
@@ -53,12 +49,12 @@ def test_documents_scoped_to_conversation(user, new_conversation, upload_pdf, cl
     upload_pdf(user, conv_a, BIOLOGY_NOTES, filename="a.pdf")
     upload_pdf(user, conv_b, BIOLOGY_NOTES, filename="b.pdf")
 
-    docs_a = client.get("/documents/getdocs", headers=user["headers"],
+    docs_a = client.get("/documents", headers=user["headers"],
                         params={"conversation_id": conv_a}).json()
     names_a = [d["filename"] for d in docs_a]
     assert "a.pdf" in names_a and "b.pdf" not in names_a
 
-    docs_b = client.get("/documents/getdocs", headers=user["headers"],
+    docs_b = client.get("/documents", headers=user["headers"],
                         params={"conversation_id": conv_b}).json()
     names_b = [d["filename"] for d in docs_b]
     assert "b.pdf" in names_b and "a.pdf" not in names_b
@@ -72,7 +68,7 @@ def test_delete_document(user, new_conversation, upload_pdf, client):
     assert client.delete(f"/documents/{doc_id}",
                          headers=user["headers"], params={"conversation_id":cid, "document_id":doc_id}).status_code == 200
 
-    docs = client.get("/documents/getdocs", headers=user["headers"],
+    docs = client.get("/documents", headers=user["headers"],
                       params={"conversation_id": cid}).json()
     assert all(d["id"] != doc_id for d in docs)
 
@@ -83,7 +79,7 @@ def test_cannot_upload_to_others_conversation(user, second_user,
     cid = new_conversation(user)
     from tests.conftest import make_pdf
     r = client.post(
-        "/documents/upload",
+        "/documents",
         headers=second_user["headers"],
         files={"file": ("x.pdf", make_pdf(BIOLOGY_NOTES), "application/pdf")},
         data={"conversation_id": cid},

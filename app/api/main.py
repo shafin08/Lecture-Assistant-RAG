@@ -16,7 +16,7 @@ from app.database import create_tables
 from app.api import auth, documents, chat, conversation 
 from app.rag.embedder import get_vectordb
 from sentence_transformers import CrossEncoder
-from config import RERANKER_MODEL, CORS_ORIGIN, validate_config
+from config import RERANKER_MODEL, CORS_ORIGIN
 
 
 
@@ -28,7 +28,6 @@ from config import RERANKER_MODEL, CORS_ORIGIN, validate_config
 @asynccontextmanager
 async def lifespan(app:FastAPI):
     # This runs once when the server starts
-    validate_config()
     create_tables()
     app.state.vector_db = get_vectordb()
     app.state.reranker_model = CrossEncoder(RERANKER_MODEL)

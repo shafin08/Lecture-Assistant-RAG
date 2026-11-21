@@ -121,7 +121,6 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
         '''
         llm_model = ChatOpenAI(
             model=LLM_MODEL,
-            temperature=0.1,
             max_retries=10,
             timeout=120,
 

@@ -140,7 +140,6 @@ async def delete_documents(document_id: int, conversation_id: int, http_request:
     Removes the pdf document from the disk, remove record in the database and delete all of the document chunks in CHROMA DB
     """
 
-
    vector_db = http_request.app.state.vector_db
    
    document = db.scalar(select(Document).where(Document.id == document_id))
