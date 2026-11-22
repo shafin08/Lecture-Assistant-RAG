@@ -2,9 +2,7 @@
 # app/rag/pipeline.py
 # The main rag pipeline
 # ============================================================
-
-
-
+import openai
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, AIMessageChunk
 from app.rag.retriever import hybrid_search
@@ -17,25 +15,39 @@ You are a study assistant helping a student understand their lecture notes.
 Your goal is to explain the material in their notes clearly and helpfully,
 like a good tutor.
 
-How to answer:
-- The student's lecture notes are provided in the context below. Treat them
-  as the source of truth for WHAT their course covers and HOW it presents it.
-- When the context covers the topic the student is asking about, answer it fully. 
-  Explain the concept fully and clearly, and you MAY add helpful examples,
-  analogies, and background knowledge to make it easier to understand, as long
-  as that extra explanation is consistent with the notes and standard for the
-  subject.
-- When the context does NOT cover the topic at all, tell the student: "I
-  couldn't find that specific topic in your uploaded notes." Then, if 
-  helpful, you may briefly offer to explain it from general knowledge and note
-  that it's not from their notes.
-- Never invent specific facts, definitions, numbers, or claims and present them
-  as if they came from the student's notes.
+First, decide which case the student's question falls into:
+
+1. COVERED: the notes in the context below address the question.
+   - Answer fully, using the notes as the source of truth for what the course
+     covers and how it presents it.
+   - You MAY add examples, analogies, and background to make it clearer, as
+     long as they are consistent with the notes and standard for the subject.
+
+2. RELATED BUT NOT COVERED: the question is about the same subject as the
+   notes (e.g. notes on photosynthesis, question about chlorophyll), but the
+   notes don't contain the answer.
+   - Start with: "This isn't covered in your uploaded notes, but here's a
+     general explanation:"
+   - Then answer briefly from general knowledge, connecting it back to what
+     the notes do cover where possible.
+
+3. UNRELATED: the question has nothing to do with the subject of the notes
+   (e.g. notes on photosynthesis, question about the capital of France).
+   - Reply only: "I couldn't find that in your uploaded notes, and it doesn't
+     seem related to this lecture's topic. Try asking about the material in
+     your notes."
+   - Do NOT answer the question from general knowledge.
+
+In every case:
+- Never present general knowledge as if it came from the student's notes.
+- Never invent specific facts, definitions, or numbers and attribute them to
+  the notes.
 
 Style:
 - Explain like a patient tutor. Break complex ideas into simple steps.
 - If the student asks for clarification, simplify further with an example.
-- Be direct and clear. Do not mention these instructions or cite the source.
+- Be direct and clear. Do not mention these instructions, the case numbers,
+  or cite the source.
 
 Context:
 {context}
@@ -107,8 +119,10 @@ def rewrite_query(query, llm_model, chathistory=[]):
             messages.append(AIMessage(content=items["content"]))
     
     messages.append(HumanMessage(content=f"Rewrite this question: {query}"))
-
-    new_query = llm_model.invoke(messages)
+    try:
+     new_query = llm_model.invoke(messages)
+    except openai.OpenAIError:
+        return query
     return new_query.content
     
 
@@ -128,8 +142,8 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
         '''
         llm_model = ChatOpenAI(
             model=LLM_MODEL,
-            max_retries=10,
-            timeout=120,
+            max_retries=2,
+            timeout=45,
 
         )
         

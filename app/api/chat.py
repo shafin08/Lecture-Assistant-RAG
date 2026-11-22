@@ -42,7 +42,7 @@ class ChatResponse(BaseModel):
     answer: str
 
 @router.post("", response_model=ChatResponse)
-async def chat(request: ChatRequest, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def chat(request: ChatRequest, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     '''
     The main query mechanism that calls the rag pipeline
     This endpoint gets called when the user make a query in one of their conversation
@@ -85,7 +85,7 @@ async def chat(request: ChatRequest, http_request: Request, user: User = Depends
          yield chunk.content
       save_message(db, request.conversation_id, "assistant", full_txt)
       if len(convo_messages) == 0:
-        title = generate_title_from_question(full_txt)
+        title = generate_title_from_question(request.query)
         update_title(db, request.conversation_id, title)
       
 

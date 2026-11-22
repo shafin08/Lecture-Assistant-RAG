@@ -30,7 +30,6 @@ st.set_page_config(
     layout="centered",
 )
 
-API_URL = "http://localhost:8000"
 
 
 # ============================================================

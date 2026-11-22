@@ -59,6 +59,6 @@ As a university student, lecture notes can easily pile up across courses and bef
 
 ## Contact
 * Shafin Ahmed - shafinahmed076@gmail.com
-* Project Link: https://github.com/shafin08/Lecture-Assistant-RAG.git
+* Project Link: https://github.com/shafin08/Lecture-Assistant-RAG
 
 

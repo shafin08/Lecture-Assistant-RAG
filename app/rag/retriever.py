@@ -4,9 +4,10 @@
 # and keyword search (BM25) for better retrieval
 # ============================================================
 
-
 import warnings
-warnings.filterwarnings("ignore")
+# Silence known third-party warnings only, so real warnings from our code still show
+warnings.filterwarnings("ignore", message="Importing debug from langchain root module")
+warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
 
 from langchain_community.retrievers import BM25Retriever         
 from langchain.schema import Document                            

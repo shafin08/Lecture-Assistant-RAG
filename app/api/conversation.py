@@ -67,7 +67,7 @@ class RenameRequest(BaseModel):
     title: str
 
 @router.post("",response_model=ConversationResponse)
-async def new_conversation(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def new_conversation(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     '''
     Create a new conversation
     '''
@@ -75,14 +75,14 @@ async def new_conversation(user: User = Depends(get_current_user), db: Session =
     return conversation
 
 @router.get("",response_model=list[ConversationResponse])
-async def list_conversation(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def list_conversation(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     '''
     For the app sidebar that lists all of the user created chat sessions
     '''
     return get_usr_convo(db, user.id)
 
 @router.get("/{conversation_id}", response_model=ConversationDetailResponse)
-async def get_conversation(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_conversation(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     '''
     User open a single chat session and gets all the chat messages
     '''
@@ -101,7 +101,7 @@ async def get_conversation(conversation_id: int, user: User = Depends(get_curren
     }
 
 @router.patch("/{conversation_id}")
-async def change_title(title: RenameRequest, conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def change_title(title: RenameRequest, conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     '''
     Modify a chat session title
     '''

@@ -45,7 +45,7 @@ class UserResponse(BaseModel):
     created_at: datetime
 
 @router.post("/register", response_model=UserResponse)
-async def register(request: RegisterRequest, db: Session = Depends(get_db)):
+def register(request: RegisterRequest, db: Session = Depends(get_db)):
     """
     Check if an account is already registered and create a new account for new user
     """
@@ -67,7 +67,7 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     return new_user
 
 @router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest, db: Session = Depends(get_db)):
+def login(request: LoginRequest, db: Session = Depends(get_db)):
     '''
     Handles the logic for existing user login
     '''

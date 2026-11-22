@@ -3,8 +3,12 @@
 # Wraps every backend API call into one clean function.
 # ============================================================
 import requests
+import os
+import requests
+from dotenv import load_dotenv
 
-API_URL = "http://localhost:8000"
+load_dotenv()
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 
 class APIError(Exception):
@@ -150,7 +154,7 @@ def send_message(token, conversation_id, query):
         "POST", "/chat", token, "Couldn't get an answer",
         json={"query": query, "conversation_id": conversation_id},
         stream=True,
-        timeout=120,
+        timeout=(5, 180),
     )
     try:
         for chunk in response.iter_content(chunk_size=4, decode_unicode=True):

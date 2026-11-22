@@ -117,7 +117,7 @@ async def upload(http_request: Request, conversation_id: int = Form(), user: Use
        )
 
 @router.get("", response_model=list[DocumentResponse])
-async def list_documents(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def list_documents(conversation_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
    """
     Returns all documents belonging to the current user.
     Never returns other users' documents.
@@ -132,7 +132,7 @@ async def list_documents(conversation_id: int, user: User = Depends(get_current_
    return usr_doc # Returns a list of document objects or empty list if user has no uploaded document
 
 @router.delete("/{document_id}")
-async def delete_documents(document_id: int, conversation_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def delete_documents(document_id: int, conversation_id: int, http_request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
    """
     Deletes a user document
     Removes the pdf document from the disk, remove record in the database and delete all of the document chunks in CHROMA DB
