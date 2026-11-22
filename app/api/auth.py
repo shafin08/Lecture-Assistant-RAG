@@ -40,10 +40,11 @@ class TokenResponse(BaseModel):
 
 class UserResponse(BaseModel):
     id: int
+    username: str
     email: str
     created_at: datetime
 
-@router.post("/register")
+@router.post("/register", response_model=UserResponse)
 async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     """
     Check if an account is already registered and create a new account for new user

@@ -7,9 +7,52 @@ import requests
 API_URL = "http://localhost:8000"
 
 
+class APIError(Exception):
+    """The request failed: bad input, server error, or server unreachable."""
+
+
+class AuthError(Exception):
+    """Token missing, invalid or expired: the user must log in again."""
+
+
 def auth_headers(token: str):
     """Builds the Authorization header for protected endpoints."""
     return {"Authorization": f"Bearer {token}"}
+
+
+def _error_detail(response, default):
+    '''
+    Pull the error message out of a failed response, falling back to default
+    when the body isn't JSON (e.g. a plain-text 500)
+    '''
+    try:
+        detail = response.json().get("detail", default)
+    except ValueError:
+        return default
+    if isinstance(detail, list):  # FastAPI 422 validation errors
+        detail = detail[0].get("msg", default)
+    return detail
+
+
+def _request(method, path, token=None, default_error="Something went wrong", **kwargs):
+    '''
+    Send a request to the backend and turn every failure into APIError or AuthError
+    '''
+    kwargs.setdefault("timeout", 10)
+    headers = auth_headers(token) if token else {}
+    try:
+        response = requests.request(method, f"{API_URL}{path}", headers=headers, **kwargs)
+    except requests.exceptions.ConnectionError:
+        raise APIError("Could not connect to the server.")
+    except requests.exceptions.Timeout:
+        raise APIError("The server took too long to respond.")
+
+    if response.status_code == 401:
+        raise AuthError("Your session has expired. Please log in again.")
+    if not response.ok:
+        raise APIError(_error_detail(response, default_error))
+    return response
+
 
 def register(email, username, password):
     try:
@@ -49,7 +92,7 @@ def login(email, password):
     else:
        response.raise_for_status()
   except requests.exceptions.ConnectionError:
-    return False, "Could not connect to the server."   
+    return False, "Could not connect to the server."
   except requests.exceptions.HTTPError:
      detail = response.json().get("detail", "Login Failed")
      if isinstance(detail, list):
@@ -58,145 +101,60 @@ def login(email, password):
   except Exception as e:
      return False, str(e)
 
-def create_conversation(token): 
-     response = requests.post(
-      f"{API_URL}/conversation",
-      headers=auth_headers(token),
-      timeout=10
-    )
-     response.raise_for_status()
-     return response.json()
+
+def create_conversation(token):
+    return _request("POST", "/conversation", token, "Couldn't create chat").json()
 
 
 def list_conversation(token):
-
-   try:
-    response = requests.get(
-      f"{API_URL}/conversation",
-      headers=auth_headers(token),
-      timeout=10
-   )
-    response.raise_for_status()
-    return response.json()
-   except requests.exceptions.HTTPError:
-    detail = response.json().get("detail")
-    raise Exception(detail)
+    return _request("GET", "/conversation", token, "Couldn't load chats").json()
 
 
 def get_conversation(token, conversation_id):
-   try:
-    response = requests.get(
-      f"{API_URL}/conversation/{conversation_id}",
-      headers=auth_headers(token),
-      timeout=10
-   )
-    response.raise_for_status()
-    return response.json()
-   except requests.exceptions.HTTPError:
-    detail = response.json().get("detail", "Couldn't fetch conversation")
-    raise Exception(detail)
+    return _request("GET", f"/conversation/{conversation_id}", token,
+                    "Couldn't fetch conversation").json()
+
 
 def change_title(token, conversation_id, title):
-   try:
-    response = requests.patch(
-         f"{API_URL}/conversation/{conversation_id}",
-         headers=auth_headers(token),
-         json={"title":title},
-         timeout=10
-      )
-    response.raise_for_status() 
-    return response.json()
-   except requests.exceptions.HTTPError:
-      detail = response.json().get("detail", "Couldn't rename title")
-      raise Exception(detail)
+    return _request("PATCH", f"/conversation/{conversation_id}", token,
+                    "Couldn't rename title", json={"title": title}).json()
+
 
 def delete_convo(token, conversation_id):
-  try:
-     response = requests.delete(
-           f"{API_URL}/conversation/{conversation_id}",
-           headers=auth_headers(token),
-           timeout=10
-        )
-     response.raise_for_status() 
-     return response.json()
-  except requests.exceptions.HTTPError:
-     detail = response.json().get("detail")
-     raise Exception(detail)
+    return _request("DELETE", f"/conversation/{conversation_id}", token,
+                    "Couldn't delete chat").json()
 
 
 def upload(token, conversation_id, file):
-  try:
-    response = requests.post(
-      f"{API_URL}/documents",
-      headers=auth_headers(token),
-      # Streamlit's uploaded file has .name and .getvalue()
-      files={"file": (file.name, file.getvalue(), "application/pdf")},
-      data={"conversation_id": conversation_id},
-      timeout=120
+    return _request(
+        "POST", "/documents", token, "Couldn't upload document",
+        # Streamlit's uploaded file has .name and .getvalue()
+        files={"file": (file.name, file.getvalue(), "application/pdf")},
+        data={"conversation_id": conversation_id},
+        timeout=120,
+    ).json()
 
-    )
-
-    response.raise_for_status()
-    return response.json()
-  except requests.exceptions.HTTPError:
-    detail = response.json().get("detail", "Couldn't upload document")
-    raise Exception(detail)
 
 def list_documents(token, conversation_id):
-  try:
-      response = requests.get(
-        f"{API_URL}/documents",
-        headers=auth_headers(token),
-        params={"conversation_id":conversation_id},
-        timeout=10
-  
-      )
-  
-      response.raise_for_status()
-      return response.json()
-  except requests.exceptions.HTTPError:
-    detail = response.json().get("detail", "Couldn't fetch documents")
-    raise Exception(detail)
-  except requests.exceptions.RequestException:
-     raise Exception("Something went wrong with the request.")
+    return _request("GET", "/documents", token, "Couldn't fetch documents",
+                    params={"conversation_id": conversation_id}).json()
+
 
 def delete_document(token, document_id, conversation_id):
-  try:
-    response = requests.delete(
-          f"{API_URL}/documents/{document_id}",
-          headers=auth_headers(token),
-          params={"document_id": document_id, "conversation_id": conversation_id},
-          timeout=10
-     
-        )
+    return _request("DELETE", f"/documents/{document_id}", token, "Couldn't delete document",
+                    params={"document_id": document_id, "conversation_id": conversation_id}).json()
 
-    response.raise_for_status()
-    return response.json()
-  except requests.exceptions.HTTPError:
-        detail = response.json().get("detail")
-        raise Exception(detail)
 
 def send_message(token, conversation_id, query):
-   try:
-       response = requests.post(
-             f"{API_URL}/chat",
-             headers=auth_headers(token),
-             json={
-                "query": query,
-                "conversation_id": conversation_id
-
-             },
-             stream=True,
-
-             timeout=120
-       
-           )
-       response.raise_for_status()
-
-       for chunk in response.iter_content(chunk_size=4, decode_unicode=True):
-          if chunk:
-             yield chunk
-       
-   except requests.exceptions.HTTPError:
-           detail = response.json().get("detail")
-           raise Exception(detail)
+    response = _request(
+        "POST", "/chat", token, "Couldn't get an answer",
+        json={"query": query, "conversation_id": conversation_id},
+        stream=True,
+        timeout=120,
+    )
+    try:
+        for chunk in response.iter_content(chunk_size=4, decode_unicode=True):
+            if chunk:
+                yield chunk
+    except requests.exceptions.RequestException:
+        raise APIError("The connection dropped while the answer was streaming.")

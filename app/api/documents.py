@@ -113,7 +113,7 @@ async def upload(http_request: Request, conversation_id: int = Form(), user: Use
     except Exception as e:
        raise HTTPException(
           status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-          detail=f"Failed to process pdf: {e}"
+          detail=f"Failed to process pdf"
        )
 
 @router.get("", response_model=list[DocumentResponse])

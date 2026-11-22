@@ -44,7 +44,7 @@ def run_reranker(query, reranker, chunks):
     counter = 0
 
     for item in scored_results:
-        if counter < int(len(chunks)*0.6): # Dynamically compute the top k to take 60% of the rerank results
+        if counter < max(1,int(len(chunks)*0.6)): # Dynamically compute the top k to take 60% of the rerank results
             final_chunks.append(item[0])
         
         counter += 1

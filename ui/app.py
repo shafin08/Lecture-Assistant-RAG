@@ -7,6 +7,8 @@ import streamlit as st
 import re
 from st_keyup import st_keyup
 from api_client import (
+    APIError,
+    AuthError,
     register,
     login, 
     create_conversation,
@@ -69,16 +71,24 @@ def sidebar():
 
         # Create new chat button
         if st.button("New Chat", use_container_width=True):
-            new_convo = create_conversation(st.session_state.token)
-            st.session_state.conversation_id = new_convo['id']
-            st.rerun()
+            try:
+                new_convo = create_conversation(st.session_state.token)
+            except APIError as e:
+                st.error(str(e))
+            else:
+                st.session_state.conversation_id = new_convo['id']
+                st.rerun()
 
         st.divider()
 
         # Display conversation list
         st.subheader("Your Chats")
 
-        usr_conversation = list_conversation(st.session_state.token)
+        try:
+            usr_conversation = list_conversation(st.session_state.token)
+        except APIError as e:
+            st.error(str(e))
+            usr_conversation = []
         if not usr_conversation:
             st.caption("No chats yet, start a new chat above")
             
@@ -106,7 +116,7 @@ def sidebar():
                         try:
                          change_title(st.session_state.token, convo["id"], new_title)
                          st.rerun()
-                        except Exception as e:
+                        except APIError as e:
                             st.error(str(e))
                     st.divider()
                     # Delete conversation
@@ -116,7 +126,7 @@ def sidebar():
                             if st.session_state.conversation_id == convo["id"]:
                                 st.session_state.conversation_id = None
                             st.rerun()
-                        except Exception as e:
+                        except APIError as e:
                             st.error(str(e))
 
 
@@ -136,6 +146,7 @@ def chat_area():
         conversation_id = st.session_state.conversation_id
 
         # Display uploaded documents
+        documents = []
         with st.expander("Document uploaded", expanded=True):
             try:
                 documents = list_documents(token, conversation_id)
@@ -149,17 +160,17 @@ def chat_area():
                                 try:
                                  delete_document(st.session_state.token, doc['id'], conversation_id)
                                  st.rerun()
-                                except Exception as e:
+                                except APIError as e:
                                     st.error(str(e))
                                 
                 else:
                     st.caption("No document uploaded yet")
                     
-            except Exception as e:
+            except APIError as e:
                 st.error(str(e))  
 
         # Upload widget
-        have_document = list_documents(token, conversation_id)
+        have_document = documents
         uploaded = st.file_uploader("Upload a document to start asking, only one document allowed", type={"PDF"}, key=st.session_state.uploader_key, max_upload_size=2000, accept_multiple_files=False)  
         if uploaded and st.button("Upload", disabled= bool(have_document)):
             with st.spinner("Uploading..."):
@@ -168,12 +179,11 @@ def chat_area():
                     st.toast("Document uploaded!", duration='long')
                     st.session_state.uploader_key += 1 # Resets the file uploader
                     st.rerun()
-                except Exception as e:
+                except APIError as e:
                     st.error(str(e))
         st.divider()
 
         # Main query area
-        have_document = list_documents(token, conversation_id) # A check for only allowing user to ask a query if there is a document uploaded
         try:
          
          convo_messages = get_conversation(st.session_state.token, st.session_state.conversation_id)
@@ -182,7 +192,7 @@ def chat_area():
             with st.chat_message(message['role']):
                 st.write(message['content'])
                     
-        except Exception as e:
+        except APIError as e:
          st.error(str(e))
 
         query = st.chat_input("Ask anything...", disabled= not have_document)
@@ -196,9 +206,10 @@ def chat_area():
                     try:
                         st.write_stream(send_message(st.session_state.token, st.session_state.conversation_id, query))
                         
-                    except Exception as e:
+                    except APIError as e:
                         st.error(str(e))
-            st.rerun()
+                    else:
+                        st.rerun()
 
 
 
@@ -281,7 +292,15 @@ def main_app():
 # ============================================================
 
 if st.session_state.token is None:
+    if st.session_state.pop("session_expired", False):
+        st.warning("Your session has expired. Please log in again.")
     show_signup()
 else:
-    main_app()
+    try:
+        main_app()
+    except AuthError: # Expired or invalid token, send the user back to the login page
+        st.session_state.token = None
+        st.session_state.conversation_id = None
+        st.session_state.session_expired = True
+        st.rerun()
 
