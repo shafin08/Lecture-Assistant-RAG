@@ -162,14 +162,6 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
         
         llm_context = build_context(rerank_results)
 
-        print(llm_context)
-        '''
-        for chunk in rerank_results:
-            title = chunk.metadata.get("title", "Unknown")
-            print(f"Title: {title}")
-            print(f"Content: {chunk.page_content}\n\n")
-        '''
-
         messages = [
             SystemMessage(content=SYSTEM_PROMPT.format(context=llm_context))
         ] 
@@ -181,70 +173,5 @@ def ask_llm(query, vector_db, reranker, user_id, conversation_id, chathistory=[]
                 messages.append(AIMessage(content=chat.get("content")))
         
         messages.append(HumanMessage(content=query))
-        
-        
-        
-        '''
-        for items in rerank_results:
-            print("Rerank Search")
-            print("------------")
-            title = items.metadata.get("title", "Unknown")
-            print(f"Title: {title}")
-            print(f"Content: {items.page_content}\n\n")
-        '''
     
         yield from llm_model.stream(messages) # Use yield in order to stream the AI response to the frontend
-
-
-
-'''
-if __name__ == "__main__":
-    print("Testing RAG pipeline...")
-    print("Loading components — first run may take a few minutes...\n")
-
-    # Load components once
-    vectorstore = load_vectorstore()
-    bm25_retriever = load_bm25()
-
-    # Test questions
-    test_questions = [
-        "Why did sasuke kill itachi?",
-
-    ]
-
-    chat_history = []
-
-    for question in test_questions:
-        print(f"\n Question: {question}")
-        print("-" * 50)
-
-        result = ask_llm(
-            question,
-            chathistory=chat_history,
-        )
-
-        print(f" Answer: {result['answer']}")
-        print(f" Sources: {[s['title'] for s in result['sources']]}")
-      
-
-        # Add to chat history for multi-turn conversation
-        
-        chat_history.append({"role": "user", "content": question})
-        chat_history.append({"role": "assistant", "content": result["answer"]})
-        
-'''
-
-
-    
-
-     
-
-
-     
-
-    
-
-
-
-
-    
