@@ -34,7 +34,7 @@ JWT_EXPIRATION_MINUTES = int(os.getenv("JWT_EXPIRATION_MINUTES"))
 
 
 # --- Paths ---
-CHROMA_DB_DIR = "chroma_db"
+CHROMA_DB_DIR = os.getenv("CHROMA_DB_DIR", "chroma_db")
 
-CORS_ORIGIN = os.getenv("CORS_ORIGIN", "http://localhost:8501").split(",")
+CORS_ORIGINS = os.getenv("CORS_ORIGIN", "http://localhost:8501").split(",")
 

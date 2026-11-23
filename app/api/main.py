@@ -13,7 +13,7 @@ from app.database import create_tables
 from app.api import auth, documents, chat, conversation 
 from app.rag.embedder import get_vectordb
 from sentence_transformers import CrossEncoder
-from app.config import RERANKER_MODEL, CORS_ORIGIN
+from app.config import RERANKER_MODEL, CORS_ORIGINS
 
 
 
@@ -43,7 +43,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGIN,
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

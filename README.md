@@ -50,6 +50,8 @@ As a university student, lecture notes can easily pile up across courses and bef
 ## Getting Started
 
 ### Prerequisites
+*   **Docker Desktop:** You can download it here: https://www.docker.com/products/docker-desktop/
+*   **An OpenAI API key:** You can get one here: https://platform.openai.com/api-keys
 
 ### Setup
 
