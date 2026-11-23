@@ -55,7 +55,7 @@ As a university student, lecture notes can easily pile up across courses and bef
 
 ### Setup
 1. **Clone the repository**
-2. **Create your .env files from the .evn.example**
+2. **Create your .env files from the .env.example**
   ```bash
    cp .env.example .env
    ```
